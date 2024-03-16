@@ -32,6 +32,13 @@ function Decoder(bytes, port) {
       decoded.sats = bytes[10];
       decoded.accuracy = 2.5; // Bogus Accuracy required by Cargo/Mapper integration
       break;
+    case 3: // Mapper short! (Cargo and Heatmap too)
+      decoded.latitude = latitude;
+      decoded.longitude = longitude;
+      decoded.altitude = (bytes[6] >> 3)*150;
+      decoded.sats = (bytes[6] & 0x7)+3;
+      decoded.accuracy = 2.5; // Bogus Accuracy required by Cargo/Mapper integration
+      break;
     case 5: // System status
       decoded.last_latitude = latitude;
       decoded.last_longitude = longitude;
@@ -60,4 +67,11 @@ function Decoder(bytes, port) {
   }
 
   return decoded;
+}
+
+// Wrapper for ChirpStack V4:
+function decodeUplink(input) {
+  return { 
+      data: Decoder(input.bytes, input.fPort)
+  };   
 }
