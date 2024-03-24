@@ -5,6 +5,7 @@
 // Accuracy is a dummy value required by some Integrations.
 // Battery is 1/100 of a volt, offset by 2v for a range of 2.00 to 4.56 volts.
 //
+
 function Decoder(bytes, port) {
   var decoded = {};
 
@@ -60,4 +61,11 @@ function Decoder(bytes, port) {
   }
 
   return decoded;
+}
+
+// Wrapper for ChirpStack V4:
+function decodeUplink(input) {
+        return { 
+            data: Decoder(input.bytes, input.fPort)
+        };   
 }
