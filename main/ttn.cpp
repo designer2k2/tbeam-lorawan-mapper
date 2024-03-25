@@ -325,14 +325,23 @@ void ttn_join(void) {
   // other regions, this will need to be changed.
   LMIC_selectSubBand(1);
 
+#elif defined(CFG_au915) && defined(CFG_au915_fsb6)
+
+  // AU915 FSB6
+  // CH 40-47 (923.2 - 924.6 MHz)
+  // Helium DualPlan was live in Australia 2022-11-17 to 2023-04-18
+  // DualPlan allowed AU915 devices to co-exist with AS923 by taking advantage
+  // of some AU915 FSB6 frequencies overlapping AS923 frequencies.
+  // If a device joined on the first two channels of FSB6, it was treated as
+  // an AS923 device. On the last 6 channels, an AU915 device.
+  LMIC_selectSubBand(5);
+
 #elif defined(CFG_au915)
 
-  // set sub band for AU915
-  // before 2022-11-17 Helium was using FSB2 CH 8-15 (916.8 - 918.2 MHz uplink)
+  // AU915 FSB2
+  // CH 8-15 (916.8 - 918.2 MHz uplink)
   // https://github.com/TheThingsNetwork/gateway-conf/blob/master/AU-global_conf.json
-  // LMIC_selectSubBand(1);
-  // after 2022-11-17 Helium switched to DualPlan using FSB6 CH 40-47 (923.2 - 924.6 MHz uplink)
-  LMIC_selectSubBand(5);
+  LMIC_selectSubBand(1);
 
 #endif
 
