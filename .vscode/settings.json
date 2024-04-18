@@ -6,6 +6,8 @@
         "new": "cpp",
         "memory": "cpp",
         "istream": "cpp",
-        "functional": "cpp"
-    }
+        "functional": "cpp",
+        "*.tpp": "cpp"
+    },
+    "cmake.configureOnOpen": true
 }

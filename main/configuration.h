@@ -28,7 +28,7 @@
  * Version
  */
 #define APP_NAME "MaxP Mapper"
-#define APP_VERSION "1.7.8"  // 2022-Nov-18
+#define APP_VERSION "0.0.1"  // 2024-Apr-18
 
 /**
  * CONFIGURATION
@@ -82,12 +82,12 @@
 /**
  * If we still haven't moved in this many seconds, start sending even slower..
  */
-#define REST_WAIT           (20 * 60)
+#define REST_WAIT (20 * 60)
 
 /**
  * Slow resting ping frequency in seconds
  */
-#define REST_TX_INTERVAL    (30 * 60)
+#define REST_TX_INTERVAL (30 * 60)
 
 /**
  * This last stage is a low-power sleep to conserve battery when the Mapper has
@@ -109,8 +109,7 @@
 /**
  * If we STILL haven't moved in this long, turn off the GPS to save power
  */
-#define SLEEP_WAIT          (2 * 60 * 60)
-
+#define SLEEP_WAIT (2 * 60 * 60)
 
 /**
  * For a vehicle application where USB Power appears BEFORE motion, this can be
@@ -118,7 +117,7 @@
  *
  *     Wake up and check position every now and then to see if movement happened.
  */
-#define SLEEP_TX_INTERVAL   (1 * 60 * 60)
+#define SLEEP_TX_INTERVAL (1 * 60 * 60)
 
 /**
  * When searching for a GPS Fix, we may never find one due to obstruction,
@@ -142,10 +141,10 @@
  * If there are no Uplinks or button presses sent for this long,
  * turn the screen off.
  */
-#define SCREEN_IDLE_OFF_S  (2 * 60)
+#define SCREEN_IDLE_OFF_S (2 * 60)
 
 /** Seconds to wait before exiting the menu. */
-#define MENU_TIMEOUT_S      5
+#define MENU_TIMEOUT_S 5
 
 /**
  * Below BATTERY_LOW_VOLTAGE, power off until USB power allows charging.
@@ -182,7 +181,7 @@
  * SF10 is about two seconds per packet, and the highest range, while SF7 is a
  * good compromise for moving vehicles and reasonable mapping observations.
  */
-#define LORAWAN_SF DR_SF7
+#define LORAWAN_SF 4
 
 /**
  * Deadzone defines a circular area where no map packets will originate.
@@ -218,16 +217,15 @@
 #define SEND_GPSLOST_UPLINKS 0  // GPS Lost messages
 #endif
 #ifndef SEND_STATUS_UPLINKS
-#define SEND_STATUS_UPLINKS  0  // USB Connect/disconnect messages
+#define SEND_STATUS_UPLINKS 0  // USB Connect/disconnect messages
 #endif
-
 
 /** Less common Configuration items */
 
 /**
  * Select which T-Beam board is being used. Only uncomment one.
  */
-//#define T_BEAM_V07  // AKA Rev0 (first board released) UNTESTED!  Expect bugs.
+// #define T_BEAM_V07  // AKA Rev0 (first board released) UNTESTED!  Expect bugs.
 #define T_BEAM_V10  // AKA Rev1 (second board released), this is the common "v1.1"
 
 /** Time to show logo on first boot (ms) */
@@ -244,20 +242,20 @@
  * adjust anything based on packet reception.
  *
  * @warning Do not enable ADR
-*/
+ */
 #define LORAWAN_ADR 0
 
 /**
  * If you are having difficulty sending messages to TTN after the first
  * successful send, uncomment the next option and experiment with values (~ 1 - 5)
  */
-//#define CLOCK_ERROR             5
+// #define CLOCK_ERROR             5
 
 /**
  * If using a single-channel gateway, uncomment this next option and set to your
  * gateway's channel
  */
-//#define SINGLE_CHANNEL_GATEWAY  0
+// #define SINGLE_CHANNEL_GATEWAY  0
 
 // -----------------------------------------------------------------------------
 // DEBUG
@@ -340,3 +338,22 @@
 #define GPS_POWER_CTRL_CH 3
 #define LORA_POWER_CTRL_CH 2
 #define PMU_IRQ 35
+
+enum _ev_t {
+  EV_SCAN_TIMEOUT,
+  EV_BEACON_FOUND,
+  EV_TXSTART,
+  EV_BEACON_MISSED,
+  EV_BEACON_TRACKED,
+  EV_JOINING,
+  EV_JOINED,
+  EV_RFU1,
+  EV_JOIN_FAILED,
+  EV_REJOIN_FAILED,
+  EV_TXCOMPLETE,
+  EV_LOST_TSYNC,
+  EV_RESET,
+  EV_RXCOMPLETE,
+  EV_LINK_DEAD,
+  EV_LINK_ALIVE
+};
