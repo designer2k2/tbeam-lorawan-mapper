@@ -1,9 +1,9 @@
 <!-- ## TTGO T-Beam Tracker for The Things Network and/or The Helium Network  -->
-# LILYGO T-Beam Mapper for the Helium LoRaWAN Network.
+# LILYGO T-Beam Mapper for the Helium or TTN LoRaWAN Network.
 
 by [Max-Plastix](https://github.com/Max-Plastix/tbeam-helium-mapper/)
 
-This code loads onto LilyGo TTGO T-Beam v1.1 board to make a Helium Network Mapper. To build one: download this build, configure some files, and upload it to your device.  Go travel the world to contribute to the Helium Network Coverage Maps!
+This code loads onto LilyGo TTGO T-Beam v1.2 board to make a LoraWan (Helium/TTN) Network Mapper. To build one: download this build, configure some files, and upload it to your device.  Go travel the world to contribute to the Helium Network Coverage Maps!
 
 ## Purpose
 
@@ -25,16 +25,11 @@ No, you do not.  It's the #2 FAQ.  The Mapper data and coverage maps are not inv
 
 ## Supported Hardware
 
-I tested this software on (many) LilyGo [TTGO T-Beam v1.1](http://www.lilygo.cn/prod_view.aspx?TypeId=50060&Id=1317&FId=t3:50060:3) devices, all on **US915**.  Others have enjoyed success on **EU688** and other worldwide bands, with the matching device.  These are commonly available as "Meshtastic" devices from AliExpress, Amazon, Banggood, eBay, etc, usually as a kit with an unsoldered OLED screen and SMA antenna for around USD $30.00.
-
-If you have an older v0.7 board or different region, adjust the configuration to match.  If you have a unique variant and find something not working, open an Issue and provide what information you can.
+I tested this software on (many) LilyGo [TTGO T-Beam v1.2](http://www.lilygo.cn/prod_view.aspx?TypeId=50060&Id=1317&FId=t3:50060:3) devices, all on **EU868**.  Others have enjoyed success on **EU688** and other worldwide bands, with the matching device.  These are commonly available as "Meshtastic" devices from AliExpress, Amazon, Banggood, eBay, etc, usually as a kit with an unsoldered OLED screen and SMA antenna for around USD $30.00.
 
 ### Semtech LoRa Radio
 
-This build uses the [MCCI Catena LMIC Library](https://github.com/mcci-catena/arduino-lmic) for LoRaWAN on the Semtech SX1276 or SX1272 radio modules.
-
-Note that the T-Beam device with a [U.FL / I-PEX](https://www.hirose.com/product/series/U.FL#) LoRa antenna connector and uBlox NEO-8M GPS module comes with a Semtech SX1262 radio, which is NOT supported by the LMIC library.
-**Do Not Buy** [this incorrect device](https://www.amazon.com/T-Beam-NEO-M8N-Wireless-Bluetooth-Display/dp/B07X2SNNGQ) for use on Helium!  It will not work.
+This build uses the [RadioLib Library]([https://github.com/mcci-catena/arduino-lmic](https://github.com/jgromes/RadioLib/) for LoRaWAN on the Semtech SX1262 radio modules.
 
 ### OLED Display
 
@@ -48,40 +43,16 @@ Since the display is not pre-installed, the buyer must solder the 4-pin connecti
 
 If you incorrectly power the OLED, short connections, or damage the Pin 21/22 connections (i2c), it is very likely that both the OLED and the AXP Power management unit are unreachable, and the board may fail in unexpected ways.  It's a good idea to program the device and check the UART Monitor output before installing the OLED, for some confidence that the board works before soldering.  (Nobody actually does this, but it's a good idea.)
 
-## Web Configuration
-
-You can get pre-compiled firmware in [github actions](https://github.com/Xinyuan-LilyGO/tbeam-helium-mapper/actions), customers no longer need to compile the source code.
-
-### Naming Rules
-
-```
-{project name}_{debug type}_{band}_{date}.bin
-```
-
-### Web Operation
-
-1. Press and hold the middle button to reset the device and wait for the red light to come on.
-
-2. Use a PC or mobile phone to connect to the hotspot of `LILYGO-XXXX`, 
-
-3. Visit `http://http://lilygo.local` in your browser
-
-![](img/web_configuration.jpg)
-
-4. According to your own needs, modify the relevant configuration and save it.
-
-5. Reset the device, and the device will enter the mapper normally.
-
 ## Mandatory Configuration
 
 Before Buliding and Uploading, you will probably want to inspect or change some items in these three files:
   - `platformio.ini`
   - `main/configuration.h`
-  - `main/credentials.cpp`
+  - `main/credentials.h`
 The comments and text below will guide you on what values to look out for.
 
 ### Geographic Region, and Frequency
-By default, this build is for the **US915** region.  Change the declaration in `platformio.ini` for a different locale, to select the correct operating rules and frequency for your country.
+By default, this build is for the **EU868** region.  Change the declaration in `credentials.h` for a different locale, to select the correct operating rules and frequency for your country.
 
 ### PlatformIO Communication port
 
