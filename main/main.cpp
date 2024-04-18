@@ -920,7 +920,6 @@ void setup() {
     screen_print(APP_NAME " " APP_VERSION, 0, 0);  // Above the Logo
     screen_print(APP_NAME " " APP_VERSION "\n");   // Add it to the log too
 
-    screen_show_logo();
     screen_update();
     delay(LOGO_DELAY);
   }
