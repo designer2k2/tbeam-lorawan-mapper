@@ -48,15 +48,6 @@ typedef enum DisplayType_T { E_DISPLAY_UNKNOWN, E_DISPLAY_SSD1306, E_DISPLAY_SH1
 
 DisplayType_T display_type = E_DISPLAY_UNKNOWN;
 
-void screen_show_logo() {
-  if (!display)
-    return;
-
-  uint8_t x = (display->getWidth() - TTN_IMAGE_WIDTH) / 2;
-  uint8_t y = SCREEN_HEADER_HEIGHT + (display->getHeight() - SCREEN_HEADER_HEIGHT - TTN_IMAGE_HEIGHT) / 2 + 1;
-  display->drawXbm(x, y, TTN_IMAGE_WIDTH, TTN_IMAGE_HEIGHT, TTN_IMAGE);
-}
-
 void screen_off() {
   if (!display)
     return;
