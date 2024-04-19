@@ -1,9 +1,8 @@
 // Decoder for MaxPlastix mappers
 //
 // 11 Byte payload: 
-// 3 Lat, 3 Long, 2 Altitude (m), 1 Speed (km/hr), 1 Battery, 1 Sats.
+// 3 Lat, 3 Long, 2 Altitude (m), 1 Sats.
 // Accuracy is a dummy value required by some Integrations.
-// Battery is 1/100 of a volt, offset by 2v for a range of 2.00 to 4.56 volts.
 //
 function Decoder(bytes, port) {
   var decoded = {};
@@ -27,9 +26,7 @@ function Decoder(bytes, port) {
       else
         decoded.altitude = altValue;
 
-      decoded.speed = parseFloat((((bytes[8])) / 1.609).toFixed(2));
-      decoded.battery = parseFloat((bytes[9] / 100 + 2).toFixed(2));
-      decoded.sats = bytes[10];
+      decoded.sats = bytes[8];
       decoded.accuracy = 2.5; // Bogus Accuracy required by Cargo/Mapper integration
       break;
     case 5: // System status
@@ -60,4 +57,11 @@ function Decoder(bytes, port) {
   }
 
   return decoded;
+}
+
+// Wrapper for ChirpStack V4:
+function decodeUplink(input) {
+  return { 
+      data: Decoder(input.bytes, input.fPort)
+  };   
 }

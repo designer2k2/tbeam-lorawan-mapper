@@ -66,7 +66,7 @@ uint8_t nwkKey[] = {RADIOLIB_LORAWAN_NWK_KEY};
 #define SX1262_BUSY 32  // SX1262 BUSY
 #define SX1262_RESET 23
 
-SX1262 radio = new Module(SX1262_CS, SX1262_DIO1, SX1262_RESET, SX1262_BUSY);  // -1116 No downlink was received
+SX1262 radio = new Module(SX1262_CS, SX1262_DIO1, SX1262_RESET, SX1262_BUSY);
 
 // create the LoRaWAN node
 LoRaWANNode node(&radio, &Region, subBand);

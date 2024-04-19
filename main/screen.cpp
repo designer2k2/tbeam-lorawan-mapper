@@ -38,7 +38,7 @@ uint16_t logBufferSize = 200;
 uint16_t logBufferFilled = 0;
 uint16_t logBufferLine = 0;
 uint16_t logBufferLineLen = 30;
-uint8_t logBufferMaxLines = 3;
+uint8_t logBufferMaxLines = 4;
 char logBuffer[200];
 
 OLEDDisplay *display;
@@ -162,31 +162,13 @@ void screen_print(const char *text) {
   if (!display)
     return;
 
-  // this needs some better handling:
-  // if a newline is in the new text and linecount at max then throw away the oldest line
-  // if not then just append the text
-  // how much can i copy from the lib here? OLEDDisplay::drawLogBuffer()
-  // also needs OLEDDisplay::write()
-  // start with just showing the last input
-  // strcpy(logBuffer, text);
   screen_buffer_write(text);
-
-  /*
-  display->print(text);
-  if (_screen_line + 8 > display->getHeight()) {
-      // scroll
-  }
-  _screen_line += 8;
-  // screen_loop();
-  */
 }
 
 void screen_buffer_print() {
   // interpretation from OLEDDisplay::drawLogBuffer()
   // this is mostly hardcoded, not nice but getting it done.
-  uint16_t lineHeight = 13;
-
-  //
+  uint16_t lineHeight = 10;
 
   // Always align left
   display->setTextAlignment(TEXT_ALIGN_LEFT);
@@ -357,20 +339,14 @@ void screen_header(unsigned int tx_interval_s, float min_dist_moved, char *cache
 
   // Cycle display every 3 seconds
   if (millis() % 6000 < 3000) {
-    // Voltage and Current
-    snprintf(buffer, sizeof(buffer), "%.2fV  ", PMU ? PMU->getBattVoltage() / 1000.0 : 0.0);
-
-    // display->setTextAlignment(TEXT_ALIGN_CENTER);
-    // display->drawString(display->getWidth() / 2, 2, buffer);
+    // Voltage and Battery %
+    snprintf(buffer, sizeof(buffer), "%d%%, %.2fV  ", PMU->getBatteryPercent(),
+             PMU ? PMU->getBattVoltage() / 1000.0 : 0.0);
     display->setTextAlignment(TEXT_ALIGN_LEFT);
     display->drawString(0, 2, buffer);
   } else {
     // ID & Time
     if (no_gps) {
-      // snprintf(buffer, sizeof(buffer), "#%03X", devid_hint);
-      display->setTextAlignment(TEXT_ALIGN_LEFT);
-      display->drawString(0, 2, buffer);
-
       display->setTextAlignment(TEXT_ALIGN_CENTER);
       display->drawString(display->getWidth() / 2, 2, "*** NO GPS ***");
 
@@ -379,10 +355,7 @@ void screen_header(unsigned int tx_interval_s, float min_dist_moved, char *cache
       display->drawString(display->getWidth(), 2, buffer);
 
     } else {
-      snprintf(buffer, sizeof(buffer), "#%02d:%02d:%02d",
-               // devid_hint,
-               tGPS.time.hour(), tGPS.time.minute(), tGPS.time.second());
-
+      snprintf(buffer, sizeof(buffer), "#%02d:%02d:%02d", tGPS.time.hour(), tGPS.time.minute(), tGPS.time.second());
       display->setTextAlignment(TEXT_ALIGN_LEFT);
       display->drawString(0, 2, buffer);
     }

@@ -1,5 +1,5 @@
 /**
- * Helium Mapper build for LilyGo TTGO T-Beam v1.1 boards.
+ * LoRaWan Mapper build for LilyGo TTGO T-Beam v1.2 boards.
  * Copyright (C) 2021-2022 by Max-Plastix
  *
  * This is a development fork by Max-Plastix hosted here:
@@ -54,15 +54,10 @@
 #include "sleep.h"
 
 #define FPORT_MAPPER 2  // FPort for Uplink messages -- must match Helium Console Decoder script!
-#define FPORT_STATUS 5
-#define FPORT_GPSLOST 6
 
 #define STATUS_BOOT 1
 #define STATUS_USB_ON 2
 #define STATUS_USB_OFF 3
-
-// Defined in ttn.ino
-void ttn_register(void (*callback)(uint8_t message));
 
 bool justSendNow = false;               // Send one at boot, regardless of deadzone?
 unsigned long int last_send_ms = 0;     // Time of last uplink
@@ -175,15 +170,11 @@ void build_mapper_packet() {
   double lon;
   uint16_t altitudeGps;
   uint8_t sats;
-  uint16_t speed;
 
   lat = tGPS.location.lat();
   lon = tGPS.location.lng();
   pack_lat_lon(lat, lon);
   altitudeGps = (uint16_t)tGPS.altitude.meters();
-  speed = (uint16_t)tGPS.speed.kmph();  // convert from double
-  if (speed > 255)
-    speed = 255;  // don't wrap around.
   sats = tGPS.satellites.value();
 
   sprintf(buffer, "Lat: %f, ", lat);
@@ -198,10 +189,7 @@ void build_mapper_packet() {
   txBuffer[6] = (altitudeGps >> 8) & 0xFF;
   txBuffer[7] = altitudeGps & 0xFF;
 
-  txBuffer[8] = speed & 0xFF;
-  txBuffer[9] = battery_byte();
-
-  txBuffer[10] = sats & 0xFF;
+  txBuffer[8] = sats & 0xFF;
 }
 
 /// Blow away our prefs (i.e. to rejoin from scratch)
@@ -234,14 +222,91 @@ boolean send_uplink(uint8_t *txBuffer, uint8_t length, uint8_t fport, boolean co
   // 254 = highest (full battery)
   // 255 = unable to measure
   uint8_t battLevel = 146;
-  battLevel = int(PMU->getBatteryPercent() * 2.53);
+  if (PMU->isBatteryConnect()) {
+    battLevel = int(PMU->getBatteryPercent() * 2.53);
+  } else {
+    battLevel = 0;
+  }
   node.setDeviceStatus(battLevel);
   packetQueued = true;
-  int state = RADIOLIB_ERR_NONE;
+  int16_t state = RADIOLIB_ERR_NONE;
   uint8_t downlinkPayload[10];  // Make sure this fits your plans!
   size_t downlinkSize;          // To hold the actual payload size received
-  state = node.sendReceive(txBuffer, sizeof(txBuffer), fport, downlinkPayload, &downlinkSize);
+  LoRaWANEvent_t uplinkDetails;
+  LoRaWANEvent_t downlinkDetails;
+  if (confirmed) {
+    node.sendMacCommandReq(RADIOLIB_LORAWAN_MAC_LINK_CHECK);
+    node.sendMacCommandReq(RADIOLIB_LORAWAN_MAC_DEVICE_TIME);
+    state = node.sendReceive(txBuffer, length, fport, downlinkPayload, &downlinkSize, confirmed, &uplinkDetails,
+                             &downlinkDetails);
+  } else {
+    state = node.sendReceive(txBuffer, length, fport, downlinkPayload, &downlinkSize, confirmed, &uplinkDetails,
+                             &downlinkDetails);
+  }
   Serial.println(state);
+
+  // If things got returned:
+  // Check if downlink was received
+  if (state != RADIOLIB_LORAWAN_NO_DOWNLINK) {
+    // Did we get a downlink with data for us
+    if (downlinkSize > 0) {
+      Serial.println(F("Downlink data"));
+    } else {
+      Serial.println(F("<MAC commands only>"));
+    }
+
+    // print RSSI (Received Signal Strength Indicator)
+    Serial.print(F("[LoRaWAN] RSSI:\t\t"));
+    Serial.print(radio.getRSSI());
+    Serial.println(F(" dBm"));
+
+    // print SNR (Signal-to-Noise Ratio)
+    Serial.print(F("[LoRaWAN] SNR:\t\t"));
+    Serial.print(radio.getSNR());
+    Serial.println(F(" dB"));
+
+    // print frequency error
+    Serial.print(F("[LoRaWAN] Frequency error:\t"));
+    Serial.print(radio.getFrequencyError());
+    Serial.println(F(" Hz"));
+
+    // print extra information about the event
+    Serial.println(F("[LoRaWAN] Event information:"));
+    Serial.print(F("[LoRaWAN] Confirmed:\t"));
+    Serial.println(downlinkDetails.confirmed);
+    Serial.print(F("[LoRaWAN] Confirming:\t"));
+    Serial.println(downlinkDetails.confirming);
+    Serial.print(F("[LoRaWAN] Datarate:\t"));
+    Serial.println(downlinkDetails.datarate);
+    Serial.print(F("[LoRaWAN] Frequency:\t"));
+    Serial.print(downlinkDetails.freq, 3);
+    Serial.println(F(" MHz"));
+    Serial.print(F("[LoRaWAN] Output power:\t"));
+    Serial.print(downlinkDetails.power);
+    Serial.println(F(" dBm"));
+    Serial.print(F("[LoRaWAN] Frame count:\t"));
+    Serial.println(downlinkDetails.fcnt);
+    Serial.print(F("[LoRaWAN] Port:\t\t"));
+    Serial.println(downlinkDetails.port);
+
+    uint8_t margin = 0;
+    uint8_t gwCnt = 0;
+    if (node.getMacLinkCheckAns(&margin, &gwCnt) == RADIOLIB_ERR_NONE) {
+      Serial.print(F("[LoRaWAN] LinkCheck margin:\t"));
+      Serial.println(margin);
+      Serial.print(F("[LoRaWAN] LinkCheck count:\t"));
+      Serial.println(gwCnt);
+    }
+
+    uint32_t networkTime = 0;
+    uint8_t fracSecond = 0;
+    if (node.getMacDeviceTimeAns(&networkTime, &fracSecond, true) == RADIOLIB_ERR_NONE) {
+      Serial.print(F("[LoRaWAN] DeviceTime Unix:\t"));
+      Serial.println(networkTime);
+      Serial.print(F("[LoRaWAN] DeviceTime second:\t1/"));
+      Serial.println(fracSecond);
+    }
+  }
 
   // Helium requires a re-join / reset of count to avoid 16bit count rollover
   // Hopefully a device reboot every 50k uplinks is no problem.
@@ -258,36 +323,6 @@ boolean send_uplink(uint8_t *txBuffer, uint8_t length, uint8_t fport, boolean co
   }
 
   return true;
-}
-
-bool status_uplink(uint8_t status, uint8_t value) {
-  if (!SEND_STATUS_UPLINKS)
-    return false;
-
-  pack_lat_lon(last_send_lat, last_send_lon);
-  txBuffer[6] = battery_byte();
-  txBuffer[7] = status;
-  txBuffer[8] = value;
-  Serial.printf("Tx: STATUS %d %d\n", status, value);
-  screen_print("\nTX STATUS ");
-  return send_uplink(txBuffer, 9, FPORT_STATUS, 0);
-}
-
-bool gpslost_uplink(void) {
-  uint16_t minutes_lost;
-
-  if (!SEND_GPSLOST_UPLINKS)
-    return false;
-
-  minutes_lost = (last_fix_time - millis()) / 1000 / 60;
-  pack_lat_lon(last_send_lat, last_send_lon);
-  txBuffer[6] = battery_byte();
-  txBuffer[7] = tGPS.satellites.value();
-  txBuffer[8] = (minutes_lost >> 8) & 0xFF;
-  txBuffer[9] = minutes_lost & 0xFF;
-  Serial.printf("Tx: GPSLOST %d\n", minutes_lost);
-  screen_print("\nTX GPSLOST ");
-  return send_uplink(txBuffer, 10, FPORT_GPSLOST, 0);
 }
 
 // LoRa message event callback
@@ -378,6 +413,14 @@ enum mapper_uplink_result mapper_uplink() {
   if (in_deadzone && !justSendNow)
     return MAPPER_UPLINK_NOTYET;
 
+  // Want an ACK on this one?
+  bool confirmed;
+  if (justSendNow) {
+    confirmed = true;
+  } else {
+    confirmed = (lorawanAck > 0) && (node.getFcntUp() % lorawanAck == 0);
+  }
+
   char because = '?';
   if (justSendNow) {
     justSendNow = false;
@@ -406,12 +449,9 @@ enum mapper_uplink_result mapper_uplink() {
   // prepare the LoRa frame
   build_mapper_packet();
 
-  // Want an ACK on this one?
-  bool confirmed = (lorawanAck > 0) && (node.getFcntUp() % lorawanAck == 0);
-
   // Send it!
   lora_msg_callback(EV_TXSTART);
-  if (!send_uplink(txBuffer, 11, FPORT_MAPPER, confirmed))
+  if (!send_uplink(txBuffer, 9, FPORT_MAPPER, confirmed))
     return MAPPER_UPLINK_NOLORA;
 
   last_send_ms = now;
@@ -756,6 +796,9 @@ void axp192Init() {
     // GNSS VDD 3300mV
     PMU->setPowerChannelVoltage(XPOWERS_ALDO3, 3300);
     PMU->enablePowerOutput(XPOWERS_ALDO3);
+
+    // Charge with 300mA
+    PMU->setChargerConstantCurr(XPOWERS_AXP2101_CHG_CUR_300MA);
   }
 
   // Flash the Blue LED until our first packet is transmitted
@@ -918,19 +961,18 @@ void setup() {
   /** Show logo on first boot (as opposed to wake) */
   if (bootCount <= 1) {
     screen_print(APP_NAME " " APP_VERSION, 0, 0);  // Above the Logo
-    screen_print(APP_NAME " " APP_VERSION "\n");   // Add it to the log too
+    //screen_print(APP_NAME " " APP_VERSION "\n");   // Add it to the log too
 
     screen_update();
     delay(LOGO_DELAY);
   }
 
-  // Helium setup
+  // LoRaWan setup
   int16_t state = 0;  // return value for calls to RadioLib
   state = radio.begin();
   debug(state != RADIOLIB_ERR_NONE, F("Initialise radio failed"), state, true);
 
   Serial.print(F("[LoRaWAN] Resuming previous session ... "));
-  node.setTxPower(20);
 
   lorawan_restore_prefs();
   lora_msg_callback(EV_JOINING);
@@ -966,7 +1008,10 @@ void setup() {
   Serial.println((unsigned long)node.getDevAddr(), HEX);
   lora_msg_callback(EV_JOINED);
 
-  node.setDatarate(4);
+  // DataRate 5 = SF7BW125KHZ
+  node.setDatarate(5);
+  // TX Power to 16dBm (max for EU868)
+  node.setTxPower(16);  
 
   // on EEPROM enabled boards, you can save the current session
   // by calling "saveSession" which allows retrieving the session after reboot or deepsleep
@@ -1158,19 +1203,6 @@ void update_activity() {
     active_state = ACTIVITY_REST;
   } else {
     active_state = ACTIVITY_MOVING;
-  }
-
-  {
-    boolean had_usb_power = have_usb_power;
-    have_usb_power = (pmu_found && PMU->isVbusIn());
-
-    if (have_usb_power && !had_usb_power) {
-      usb_power_count++;
-      status_uplink(STATUS_USB_ON, usb_power_count);
-    }
-    if (!have_usb_power && had_usb_power) {
-      status_uplink(STATUS_USB_OFF, usb_power_count);
-    }
   }
 
   // If we have USB power, keep GPS on all the time; don't sleep
@@ -1443,18 +1475,6 @@ void loop() {
   if (booted) {
     // status_uplink(STATUS_BOOT, 0);
     booted = 0;
-  }
-
-  if (active_state == ACTIVITY_GPS_LOST) {
-    now = millis();
-    if ((last_gpslost_ms == 0) ||  // first time losing GPS?
-        (now - last_gpslost_ms > GPS_LOST_PING * 1000)) {
-      gpslost_uplink();
-      last_gpslost_ms = now;
-    }
-  } else {
-    if (active_state != ACTIVITY_SLEEP)  // not sure about this
-      last_gpslost_ms = 0;               // Reset if we regained GPS
   }
 
   if (mapper_uplink() == MAPPER_UPLINK_SUCCESS) {
