@@ -58,9 +58,8 @@ uint64_t devEUI = RADIOLIB_LORAWAN_DEV_EUI;
 uint8_t appKey[] = {RADIOLIB_LORAWAN_APP_KEY};
 uint8_t nwkKey[] = {RADIOLIB_LORAWAN_NWK_KEY};
 
-// SX1262 radio = new Module(18, 26, 14, 33);  // -5 TX timeout?
-// SX1262 radio = new Module(8, 14, 12, 13); <- not working, bootloop
 
+// SX1262 on Tbeam1.2
 #define SX1262_CS 18
 #define SX1262_DIO1 33  // SX1262 IRQ
 #define SX1262_BUSY 32  // SX1262 BUSY

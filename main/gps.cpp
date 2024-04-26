@@ -4,13 +4,13 @@
 #include <Arduino.h>
 #include <HardwareSerial.h>
 #include <TinyGPS++.h>
+#include <SparkFun_u-blox_GNSS_Arduino_Library.h>
 
-#include "SparkFun_Ublox_Arduino_Library_Series_6_7.h"
 #include "configuration.h"
 
 HardwareSerial gpsSerial(GPS_SERIAL_NUM);
 
-SFE_UBLOX_GPS myGNSS;
+SFE_UBLOX_GNSS myGNSS;
 
 TinyGPSPlus tGPS;
 

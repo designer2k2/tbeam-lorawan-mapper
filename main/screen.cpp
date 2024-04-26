@@ -186,10 +186,10 @@ void screen_buffer_print() {
 
   for (uint16_t i = 0; i < logBufferFilled; i++) {
     length++;
-    // Everytime we have a \n print
+    // Every time we have a \n print
     if (logBuffer[i] == 10) {
       // Draw string on line `line` from lastPos to length
-      // Passing 0 as the lenght because we are in TEXT_ALIGN_LEFT
+      // Passing 0 as the length because we are in TEXT_ALIGN_LEFT
       char buffer[length + 1];
       memcpy(&buffer, &logBuffer[lastPos], length);
       // Serial.printf("Screen: %s\n", buffer);
