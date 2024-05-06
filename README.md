@@ -12,7 +12,7 @@ The goal of this software is to have a **TTGO T-Beam** Mapper that's ideally sui
 
 This device uploads GPS coordinates from the TTGO T-Beam to the Helium network, be used for tracking and determining signal coverage of LoRaWAN gateways and hotspots.
 With this software and a T-Beam device, one can contribute either to [The Things Network](https://www.thethingsnetwork.org/) or to the [Helium Network](https://www.helium.com) Mapper or Cargo projects.
-Details for the Mapper project can be found [TTN Mapper](https://ttnmapper.org/) or [Helium Mapper](https://mappers.helium.com/) and details for Cargo can be found [here](https://cargo.helium.com/).  It also works with [Coverage Map](https://coveragemap.net/heatmap/), a new Heatmap view of Helium hotspots and coverage.
+Details for the Mapper project can be found [TTN Mapper](https://ttnmapper.org/) or [Helium Mapper](https://mappers.helium.com/) and details for Cargo can be found [here](https://cargo.helium.com/).  It also works with [Coverage Map](https://helium.coveragemap.net/heatmap/), a new Heatmap view of Helium hotspots and coverage.
 
 The Mapper is intended to be highly active while the vehicle is in motion, and quieter when the vehicle is stationary.    By default, it is not miserly with Data Credits.  If you want to conserve Data Credits or battery power, tune the configuration to send packets less frequently.
 
@@ -26,7 +26,7 @@ No, you do not.  It's the #2 FAQ.  The Mapper data and coverage maps are not inv
 
 ## Supported Hardware
 
-I tested this software on (many) LilyGo [TTGO T-Beam v1.2](http://www.lilygo.cn/prod_view.aspx?TypeId=50060&Id=1317&FId=t3:50060:3) devices, all on **EU868**.  Others have enjoyed success on **EU688** and other worldwide bands, with the matching device.  These are commonly available as "Meshtastic" devices from AliExpress, Amazon, Banggood, eBay, etc, usually as a kit with an unsoldered OLED screen and SMA antenna for around USD $30.00.
+I tested this software on (many) LilyGo [TTGO T-Beam v1.2](https://www.lilygo.cc/products/t-beam-softrf?variant=43170155692213) devices, all on **EU868**.  Others have enjoyed success on **EU688** and other worldwide bands, with the matching device.  These are commonly available as "Meshtastic" devices from AliExpress, Amazon, Banggood, eBay, etc, usually as a kit with an unsoldered OLED screen and SMA antenna for around USD $30.00.
 
 ### Semtech LoRa Radio
 
@@ -397,7 +397,7 @@ The Fork history here in Github shows the lineage and prior work, including  htt
 
 This code was originally developed for use on The Things Network (TTN) it has been edited/repurposed for use with the Helium Network.
 
-This version is based on a forked repo from github user [kizniche] https://github.com/kizniche/ttgo-tbeam-ttn-tracker. Which in turn is based on the code from [xoseperez/ttgo-beam-tracker](https://github.com/xoseperez/ttgo-beam-tracker), with excerpts from [dermatthias/Lora-TTNMapper-T-Beam](https://github.com/dermatthias/Lora-TTNMapper-T-Beam) to fix an issue with incorrect GPS data being transmitted to the network. Support was also added for the 915 MHz frequency (North and South America). [lewisxhe/TTGO-T-Beam](https://github.com/lewisxhe/TTGO-T-Beam) was referenced for enabling use on the newer T-Beam board (Rev1).
+This version is based on a forked repo from github user [kizniche] https://github.com/kizniche/ttgo-tbeam-ttn-tracker. Which in turn is based on the code from [xoseperez/ttgo-beam-tracker](https://github.com/xoseperez/ttgo-beam-tracker), with excerpts from [dermatthias/Lora-TTNMapper-T-Beam](https://github.com/dermatthias/Lora-TTNMapper-T-Beam) to fix an issue with incorrect GPS data being transmitted to the network. Support was also added for the 915 MHz frequency (North and South America).
 
 This is a LoRaWAN node based on the [TTGO T-Beam](https://github.com/LilyGO/TTGO-T-Beam) development platform using the SSD1306 I2C OLED display.
 It uses a RFM95 by HopeRF and the MCCI LoRaWAN LMIC stack. This sample code is configured to connect to The LoRaWan network using the US 915 MHz frequency by default, but can be changed to EU 868 MHz.
@@ -415,7 +415,7 @@ NOTE: There are now 2 versions of the TTGO T-BEAM, the first version (Rev0) and 
 3. Check and edit platformio.ini to use the right bandplan for your region.
 
 4. Within the Helium Console, add a Mapper or Cargo integration.
-- step by step details for setting up a Mapper integration can be found [here](https://docs.helium.com/use-the-network/coverage-mapping/mappers-quickstart/#mappers-quickstart).
+- step by step details for setting up a Mapper integration can be found [here](https://docs.helium.com/iot/coverage-mapping/quickstart).
 - detail for setting up a Cargo integration can be found [here](https://docs.helium.com/use-the-network/console/integrations/cargo).
 
 The specific details for adding a Mapper or Cargo integration use a different edge node device than the one detailed here. When prompted to add a function decoder, be sure to use the Decoder Function above.
