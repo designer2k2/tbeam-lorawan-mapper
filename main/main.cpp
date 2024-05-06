@@ -579,6 +579,7 @@ void lorawan_save_prefs(void) {
 // Clear all saves surrounding the Lora setting
 void lorawan_erase_prefs(void) {
   Preferences p;
+  node.wipe();
   if (p.begin("lora", false)) {
     p.clear();
     p.end();
@@ -878,7 +879,7 @@ void axp192Init() {
 
   PMU->enableInterrupt(XPOWERS_USB_INSERT_INT | XPOWERS_USB_REMOVE_INT | XPOWERS_BATTERY_INSERT_INT |
                        XPOWERS_BATTERY_REMOVE_INT | XPOWERS_PWR_BTN_CLICK_INT | XPOWERS_CHARGE_START_INT |
-                       XPOWERS_CHARGE_DONE_INT);
+                       XPOWERS_CHARGE_DONE_INT | XPOWERS_PWR_BTN_LONGPRESSED_INT);
 
   // Clear all interrupt flags
   PMU->clearIrqStatus();
@@ -961,7 +962,7 @@ void setup() {
   /** Show logo on first boot (as opposed to wake) */
   if (bootCount <= 1) {
     screen_print(APP_NAME " " APP_VERSION, 0, 0);  // Above the Logo
-    //screen_print(APP_NAME " " APP_VERSION "\n");   // Add it to the log too
+    // screen_print(APP_NAME " " APP_VERSION "\n");   // Add it to the log too
 
     screen_update();
     delay(LOGO_DELAY);
@@ -1011,7 +1012,7 @@ void setup() {
   // DataRate 5 = SF7BW125KHZ
   node.setDatarate(5);
   // TX Power to 16dBm (max for EU868)
-  node.setTxPower(16);  
+  node.setTxPower(16);
 
   // on EEPROM enabled boards, you can save the current session
   // by calling "saveSession" which allows retrieving the session after reboot or deepsleep
@@ -1262,15 +1263,15 @@ void menu_send_now(void) {
 
 void menu_power_off(void) {
   screen_print("\nPOWER OFF...\n");
-  delay(4000);  // Give some time to read the screen
+  delay(5);  // Give some time to read the screen
   clean_shutdown();
 }
 
 void menu_flush_prefs(void) {
   screen_print("\nFlushing Prefs!\n");
-  // ttn_erase_prefs();
   mapper_erase_prefs();
-  delay(5000);  // Give some time to read the screen
+  lorawan_erase_prefs();
+  delay(1000);  // Give some time to read the screen
   ESP.restart();
 }
 
