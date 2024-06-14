@@ -194,7 +194,7 @@ void build_mapper_packet() {
 
 /// Blow away our prefs (i.e. to rejoin from scratch)
 void ttn_erase_prefs() {
-  node.wipe();
+  node.clearSession();
   Preferences p;
   if (p.begin("lora", false)) {
     p.clear();
@@ -285,9 +285,9 @@ boolean send_uplink(uint8_t *txBuffer, uint8_t length, uint8_t fport, boolean co
     Serial.print(downlinkDetails.power);
     Serial.println(F(" dBm"));
     Serial.print(F("[LoRaWAN] Frame count:\t"));
-    Serial.println(downlinkDetails.fcnt);
+    Serial.println(downlinkDetails.fCnt);
     Serial.print(F("[LoRaWAN] Port:\t\t"));
-    Serial.println(downlinkDetails.port);
+    Serial.println(downlinkDetails.fPort);
 
     uint8_t margin = 0;
     uint8_t gwCnt = 0;
@@ -310,7 +310,7 @@ boolean send_uplink(uint8_t *txBuffer, uint8_t length, uint8_t fport, boolean co
 
   // Helium requires a re-join / reset of count to avoid 16bit count rollover
   // Hopefully a device reboot every 50k uplinks is no problem.
-  if (node.getFcntUp() > MAX_FCOUNT) {
+  if (node.getFCntUp() > MAX_FCOUNT) {
     Serial.println("FCount Rollover!");
 
     // I don't understand why this doesn't show at all
@@ -392,7 +392,7 @@ enum mapper_uplink_result mapper_uplink() {
       return MAPPER_UPLINK_NOLORA;
 
     // LoRa is not ready for a new packet, maybe still sending the last one.
-    if (!node.isJoined())
+    if (!node.isActivated())
       return MAPPER_UPLINK_NOLORA;
 
     // Check if there is not a current TX/RX job running
@@ -418,7 +418,7 @@ enum mapper_uplink_result mapper_uplink() {
   if (justSendNow) {
     confirmed = true;
   } else {
-    confirmed = (lorawanAck > 0) && (node.getFcntUp() % lorawanAck == 0);
+    confirmed = (lorawanAck > 0) && (node.getFCntUp() % lorawanAck == 0);
   }
 
   char because = '?';
@@ -442,7 +442,7 @@ enum mapper_uplink_result mapper_uplink() {
   if (dist_moved > 1000000)
     dist_moved = 0;
 
-  snprintf(buffer, sizeof(buffer), "\n%d %c %4lus %4.0fm ", node.getFcntUp(), because, (now - last_send_ms) / 1000,
+  snprintf(buffer, sizeof(buffer), "\n%d %c %4lus %4.0fm ", node.getFCntUp(), because, (now - last_send_ms) / 1000,
            dist_moved);
   screen_print(buffer);
 
@@ -569,7 +569,7 @@ void lorawan_save_prefs(void) {
     p.putString("server", lorawanServer);
     p.putUChar("sf", lorawan_sf);
     p.putUChar("ack", lorawanAck);
-    node.saveSession();
+    //node.saveSession();
     p.putBytes("nonces", node.getBufferNonces(), RADIOLIB_LORAWAN_NONCES_BUF_SIZE);
     p.putBytes("session", node.getBufferSession(), RADIOLIB_LORAWAN_SESSION_BUF_SIZE);
     p.end();
@@ -579,7 +579,7 @@ void lorawan_save_prefs(void) {
 // Clear all saves surrounding the Lora setting
 void lorawan_erase_prefs(void) {
   Preferences p;
-  node.wipe();
+  node.clearSession();
   if (p.begin("lora", false)) {
     p.clear();
     p.end();
@@ -978,7 +978,8 @@ void setup() {
   lorawan_restore_prefs();
   lora_msg_callback(EV_JOINING);
 
-  state = node.beginOTAA(joinEUI, devEUI, nwkKey, appKey);
+  node.beginOTAA(joinEUI, devEUI, nwkKey, appKey);
+  state = node.activateOTAA();
   // state = RADIOLIB_ERR_CHECKSUM_MISMATCH;
 
   if (state == RADIOLIB_ERR_NONE) {
@@ -990,7 +991,8 @@ void setup() {
     // node.wipe();
 
     Serial.print(F("[LoRaWAN] Attempting over-the-air activation ... "));
-    state = node.beginOTAA(joinEUI, devEUI, nwkKey, appKey, true);
+    node.beginOTAA(joinEUI, devEUI, nwkKey, appKey);
+    state = node.activateOTAA();
 
     node.setADR(false);
 
@@ -1016,7 +1018,7 @@ void setup() {
 
   // on EEPROM enabled boards, you can save the current session
   // by calling "saveSession" which allows retrieving the session after reboot or deepsleep
-  node.saveSession();
+  // node.saveSession();
   lorawan_save_prefs();
 
   /**
