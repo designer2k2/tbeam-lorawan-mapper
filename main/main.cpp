@@ -982,7 +982,7 @@ void setup() {
   state = node.activateOTAA();
   // state = RADIOLIB_ERR_CHECKSUM_MISMATCH;
 
-  if (state == RADIOLIB_ERR_NONE) {
+  if ((state == RADIOLIB_ERR_NONE)||(state == RADIOLIB_LORAWAN_NEW_SESSION)) {
     Serial.println(F("success!"));
   } else {
     Serial.print(F("failed, code "));
