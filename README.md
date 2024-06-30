@@ -2,7 +2,7 @@
 # LILYGO T-Beam Mapper for the Helium or TTN LoRaWAN Network.
 
 
-This code loads onto LilyGo TTGO T-Beam v1.2 board with AXP2101 and SX1262 to make a LoraWan (Helium/TTN) Network Mapper. To build one: download this build, configure some files, and upload it to your device.  Go travel the world to contribute to the Helium Network Coverage Maps!
+This code loads onto LilyGo TTGO T-Beam v1.2 board with AXP2101 and SX1262 to make a LoraWan (Helium/TTN) Network Mapper. To build one: download this build, configure some files, and upload it to your device.  Go travel the world to contribute to the TTN/Helium Network Coverage Maps!
 
 ![loramapper](https://github.com/designer2k2/tbeam-lorawan-mapper/assets/1591573/136b92f9-3024-491f-9fa6-8ad90f7bd9ea)
 
