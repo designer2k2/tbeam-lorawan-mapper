@@ -996,7 +996,7 @@ void setup() {
 
     node.setADR(false);
 
-    if (state == RADIOLIB_ERR_NONE) {
+    if (state == RADIOLIB_LORAWAN_NEW_SESSION) {
       Serial.println(F("success!"));
     } else {
       Serial.print(F("failed, code "));
