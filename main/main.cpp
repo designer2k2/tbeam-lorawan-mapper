@@ -533,7 +533,7 @@ void lorawan_restore_prefs(void) {
     uint8_t BbufferNonces[RADIOLIB_LORAWAN_NONCES_BUF_SIZE];
     p.getBytes("nonces", BbufferNonces, RADIOLIB_LORAWAN_NONCES_BUF_SIZE);
     // a buffer that holds all LW session parameters that preferably persist, but can be afforded to get lost
-    uint8_t BbufferSession[RADIOLIB_LORAWAN_SESSION_BUF_SIZE] = {0};
+    uint8_t BbufferSession[RADIOLIB_LORAWAN_SESSION_BUF_SIZE];
     p.getBytes("session", BbufferSession, RADIOLIB_LORAWAN_SESSION_BUF_SIZE);
 
     uint32_t state;
@@ -569,9 +569,16 @@ void lorawan_save_prefs(void) {
     p.putString("server", lorawanServer);
     p.putUChar("sf", lorawan_sf);
     p.putUChar("ack", lorawanAck);
-    //node.saveSession();
-    p.putBytes("nonces", node.getBufferNonces(), RADIOLIB_LORAWAN_NONCES_BUF_SIZE);
-    p.putBytes("session", node.getBufferSession(), RADIOLIB_LORAWAN_SESSION_BUF_SIZE);
+    // ##### save the join counters (nonces) to permanent store
+    Serial.println(F("Saving nonces to flash"));
+    uint8_t buffer[RADIOLIB_LORAWAN_NONCES_BUF_SIZE];
+    uint8_t *persist = node.getBufferNonces();
+    memcpy(buffer, persist, RADIOLIB_LORAWAN_NONCES_BUF_SIZE);
+    p.putBytes("nonces", buffer, RADIOLIB_LORAWAN_NONCES_BUF_SIZE);
+    uint8_t buffer2[RADIOLIB_LORAWAN_SESSION_BUF_SIZE];
+    uint8_t *persist2 = node.getBufferSession();
+    memcpy(buffer2, persist2, RADIOLIB_LORAWAN_SESSION_BUF_SIZE);
+    p.putBytes("nonces", buffer2, RADIOLIB_LORAWAN_SESSION_BUF_SIZE);
     p.end();
   }
 }
@@ -975,14 +982,14 @@ void setup() {
 
   Serial.print(F("[LoRaWAN] Resuming previous session ... "));
 
+  node.beginOTAA(joinEUI, devEUI, nwkKey, appKey);
+
   lorawan_restore_prefs();
   lora_msg_callback(EV_JOINING);
 
-  node.beginOTAA(joinEUI, devEUI, nwkKey, appKey);
   state = node.activateOTAA();
-  // state = RADIOLIB_ERR_CHECKSUM_MISMATCH;
 
-  if ((state == RADIOLIB_ERR_NONE)||(state == RADIOLIB_LORAWAN_NEW_SESSION)) {
+  if ((state == RADIOLIB_ERR_NONE)||(state == RADIOLIB_LORAWAN_NEW_SESSION)||(state == RADIOLIB_LORAWAN_SESSION_RESTORED)) {
     Serial.println(F("success!"));
   } else {
     Serial.print(F("failed, code "));
