@@ -578,7 +578,7 @@ void lorawan_save_prefs(void) {
     uint8_t buffer2[RADIOLIB_LORAWAN_SESSION_BUF_SIZE];
     uint8_t *persist2 = node.getBufferSession();
     memcpy(buffer2, persist2, RADIOLIB_LORAWAN_SESSION_BUF_SIZE);
-    p.putBytes("nonces", buffer2, RADIOLIB_LORAWAN_SESSION_BUF_SIZE);
+    p.putBytes("session", buffer2, RADIOLIB_LORAWAN_SESSION_BUF_SIZE);
     p.end();
   }
 }
