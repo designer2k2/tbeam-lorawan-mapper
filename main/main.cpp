@@ -247,7 +247,8 @@ boolean send_uplink(uint8_t *txBuffer, uint8_t length, uint8_t fport, boolean co
 
   // If things got returned:
   // Check if downlink was received
-  if (state != RADIOLIB_LORAWAN_NO_DOWNLINK) {
+  // (state 0 = no downlink, state 1/2 = downlink in window Rx1/Rx2)
+  if (state > 0) {
     // Did we get a downlink with data for us
     if (downlinkSize > 0) {
       Serial.println(F("Downlink data"));

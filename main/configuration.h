@@ -28,7 +28,7 @@
  * Version
  */
 #define APP_NAME "Lorawan Mapper"
-#define APP_VERSION "0.0.5"  // 2024-Apr-18
+#define APP_VERSION "0.0.6"  // 2024-Apr-18
 
 /**
  * CONFIGURATION
