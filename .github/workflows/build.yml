@@ -1,4 +1,4 @@
-name: T-Beam LoRaWan Mapper CI
+name: T-Beam LoRaWan Mapper CI Build
 on:
   push:
     paths:

@@ -30,6 +30,7 @@
 #define APP_NAME "Lorawan Mapper"
 #define APP_VERSION "0.0.6"  // 2024-Apr-18
 
+
 /**
  * CONFIGURATION
  * Stuff you might reasonably want to change is here:
