@@ -59,13 +59,26 @@ uint8_t appKey[] = {RADIOLIB_LORAWAN_APP_KEY};
 uint8_t nwkKey[] = {RADIOLIB_LORAWAN_NWK_KEY};
 
 
-// SX1262 on Tbeam1.2
-#define SX1262_CS 18
-#define SX1262_DIO1 33  // SX1262 IRQ
-#define SX1262_BUSY 32  // SX1262 BUSY
-#define SX1262_RESET 23
+// do not modify below easily, switch between radios in the platformio.ini file build_flags section.
 
-SX1262 radio = new Module(SX1262_CS, SX1262_DIO1, SX1262_RESET, SX1262_BUSY);
+#ifdef ARDUINO_TBEAM_USE_RADIO_SX1262
+  // SX1262 on Tbeam1.2
+  #define SX1262_CS 18
+  #define SX1262_DIO1 33  // SX1262 IRQ
+  #define SX1262_BUSY 32  // SX1262 BUSY
+  #define SX1262_RESET 23
+
+  SX1262 radio = new Module(SX1262_CS, SX1262_DIO1, SX1262_RESET, SX1262_BUSY);
+#endif
+
+#ifdef ARDUINO_TBEAM_USE_RADIO_SX1276
+  // SX1276 on Tbeam1.2
+  #define SX1276_CS 18
+  #define SX1276_DIO1 26  // SX1262 IRQ
+  #define SX1262_RESET 23
+
+  SX1276 radio = new Module(SX1276_CS, SX1276_DIO1, SX1262_RESET);
+#endif
 
 // create the LoRaWAN node
 LoRaWANNode node(&radio, &Region, subBand);

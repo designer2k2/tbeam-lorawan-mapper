@@ -28,7 +28,7 @@
  * Version
  */
 #define APP_NAME "Lorawan Mapper"
-#define APP_VERSION "0.0.6"  // 2024-Apr-18
+#define APP_VERSION "0.0.7"  // 2024-Apr-18
 
 
 /**
@@ -182,7 +182,7 @@
  * SF10 is about two seconds per packet, and the highest range, while SF7 is a
  * good compromise for moving vehicles and reasonable mapping observations.
  */
-#define LORAWAN_SF 4
+#define LORAWAN_SF 7
 
 /**
  * Deadzone defines a circular area where no map packets will originate.
