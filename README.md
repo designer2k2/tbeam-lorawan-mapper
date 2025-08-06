@@ -141,7 +141,7 @@ Powered off, the circuit still draws **3.22 μA (micro-amps)**. Not significant,
 ## Operation: How it Works
 
 When your car is started, and USB Power appears, the Mapper will power on, acquire GPS, and continue mapping.
-It re-uses the last network Join state for faster connection and fewer packets.
+It reuses the last network Join state for faster connection and fewer packets.
 
 The Mapper is always looking to see if it's been a long time, or you moved some distance from the last report.  Whichever one happens first causes a transmission to be sent, plotting a point on the Helium map.  **Time or Distance** are the two main factors in determining when to send Uplinks.
 
@@ -237,9 +237,9 @@ The Mapper will flash the Blue LED at 4Hz and attempt to Join the Helium network
 6. RF or hardware issues.  Disconnected antenna, mismatched antenna frequency, etc.
 
 ### Re-Join
-Once the Mapper joins the Helium network, it stores these Network Key credentials for future use.  Ideally, the Mapper does not have to send a Join request at the next startup, but fetches them from the non-volatile "Preferences" memory.  To successfully continue with these same credentials, the Mapper needs to continue the Frame Count from prior transmissions, or the Helium network will reject Uplink packets as "Late" (for re-using old Frame Count values).
+Once the Mapper joins the Helium network, it stores these Network Key credentials for future use.  Ideally, the Mapper does not have to send a Join request at the next startup, but fetches them from the non-volatile "Preferences" memory.  To successfully continue with these same credentials, the Mapper needs to continue the Frame Count from prior transmissions, or the Helium network will reject Uplink packets as "Late" (for reusing old Frame Count values).
 
-When you see `(re-used join)` on the screen and serial log, this means no Join Request/Accept packets were sent, and the unit will attempt to use the same credentials.
+When you see `(reused join)` on the screen and serial log, this means no Join Request/Accept packets were sent, and the unit will attempt to use the same credentials.
 
 There are some instances where this is problematic or not correct:
 * Frame count lost without saving
