@@ -243,7 +243,13 @@ boolean send_uplink(uint8_t *txBuffer, uint8_t length, uint8_t fport, boolean co
     state = node.sendReceive(txBuffer, length, fport, downlinkPayload, &downlinkSize, confirmed, &uplinkDetails,
                              &downlinkDetails);
   }
+  Serial.print("Send result: ");
   Serial.println(state);
+
+  // Check for error:
+  if( state == RADIOLIB_ERR_NETWORK_NOT_JOINED){
+    screen_print("\nNot Joined!\n"); 
+  }
 
   // If things got returned:
   // Check if downlink was received
@@ -361,6 +367,12 @@ void lora_msg_callback(const _ev_t message) {
     Serial.printf("ACK! %lu / %lu\n", ack_rx, ack_req);
     screen_print("! ");
   }
+
+  if (EV_JOIN_FAILED == message) {
+    digitalWrite(RED_LED, HIGH);
+    screen_print("Join Failed!\n");
+  }
+
 }
 
 // Send a packet, if one is warranted
@@ -989,7 +1001,7 @@ void setup() {
   if ((state == RADIOLIB_ERR_NONE)||(state == RADIOLIB_LORAWAN_NEW_SESSION)||(state == RADIOLIB_LORAWAN_SESSION_RESTORED)) {
     Serial.println(F("success!"));
   } else {
-    Serial.print(F("failed, code "));
+    Serial.print(F("Restore failed, code "));
     Serial.println(state);
     // while(true);
     // node.wipe();
@@ -1003,10 +1015,10 @@ void setup() {
     if (state == RADIOLIB_LORAWAN_NEW_SESSION) {
       Serial.println(F("success!"));
     } else {
-      Serial.print(F("failed, code "));
+      Serial.print(F("Activation failed, code "));
       lora_msg_callback(EV_JOIN_FAILED);
       Serial.println(state);
-      while (true);
+      //while (true);
     }
   }
 

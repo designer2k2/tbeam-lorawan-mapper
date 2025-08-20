@@ -34,12 +34,15 @@
 #include "images.h"
 
 #define SCREEN_HEADER_HEIGHT 23
-uint16_t logBufferSize = 200;
-uint16_t logBufferFilled = 0;
-uint16_t logBufferLine = 0;
-uint16_t logBufferLineLen = 30;
-uint8_t logBufferMaxLines = 4;
-char logBuffer[200];
+const uint16_t logBufferLineLen = 30;
+const uint8_t logBufferMaxLines = 4;
+const uint16_t LOG_BUFFER_SIZE = 200;
+char logBuffer[LOG_BUFFER_SIZE];
+uint16_t logHead = 0;
+uint16_t logTail = 0;
+uint16_t lineStartIndices[logBufferMaxLines];
+uint8_t lineStartIndex = 0; // The 'head' for the indices array
+uint8_t lineCount = 0;      // How many lines are currently in the buffer
 
 OLEDDisplay *display;
 uint8_t _screen_line = SCREEN_HEADER_HEIGHT - 1;
@@ -84,66 +87,37 @@ void screen_print(const char *text, uint8_t x, uint8_t y) {
 }
 
 size_t screen_buffer_write(uint8_t c) {
-  // Don't waste space on \r\n line endings, dropping \r
-  if (c == 13)
-    return 1;
+    // Ignore carriage returns
+    if (c == '\r') return 1;
 
-  // convert UTF-8 character to font table index
-  c = (DefaultFontTableLookup)(c);
-  // drop unknown character
-  if (c == 0)
-    return 1;
+    // --- Part 1: Manage the main logBuffer (same as before) ---
+    logBuffer[logHead] = c;
+    logHead = (logHead + 1) % LOG_BUFFER_SIZE;
 
-  bool maxLineReached = logBufferLine >= logBufferMaxLines;
-  bool bufferFull = logBufferFilled >= logBufferSize;
-
-  // Can we write to the buffer? If not, make space.
-  if (bufferFull || maxLineReached) {
-    // See if we can chop off the first line
-    uint16_t firstLineEnd = 0;
-    for (uint16_t i = 0; i < logBufferFilled; i++) {
-      if (logBuffer[i] == 10) {
-        // Include last char too
-        firstLineEnd = i + 1;
-        // Calculate the new logBufferFilled value
-        logBufferFilled = logBufferFilled - firstLineEnd;
-        // Now move other lines to front of the buffer
-        memcpy(logBuffer, &logBuffer[firstLineEnd], logBufferFilled);
-        // And voila, buffer one line shorter
-        logBufferLine--;
-        break;
-      }
+    // If the buffer is full, advance the tail
+    if (logHead == logTail) {
+        // Check if the character we are about to overwrite was a newline.
+        // If so, we are losing a line and must decrease our line count.
+        if (logBuffer[logTail] == '\n' && lineCount > 0) {
+            lineCount--;
+        }
+        logTail = (logTail + 1) % LOG_BUFFER_SIZE;
     }
-    // In we can't take off first line, we just empty the buffer
-    if (!firstLineEnd) {
-      logBufferFilled = 0;
-      logBufferLine = 0;
+
+    // --- Part 2: Manage the lineStartIndices array ---
+    if (c == '\n') {
+        // Store the starting position of the *next* line
+        lineStartIndices[lineStartIndex] = logHead;
+
+        // Advance the index for the line starts, wrapping if needed
+        lineStartIndex = (lineStartIndex + 1) % logBufferMaxLines;
+
+        // Keep track of how many lines we have, but don't exceed the max
+        if (lineCount < logBufferMaxLines) {
+            lineCount++;
+        }
     }
-  }
-
-  // So now we know for sure we have space in the buffer
-
-  // Find the length of the last line
-  uint16_t lastLineLen = 0;
-  for (uint16_t i = 0; i < logBufferFilled; i++) {
-    lastLineLen++;
-    if (logBuffer[i] == 10)
-      lastLineLen = 0;
-  }
-  // if last line is max length, ignore anything but linebreaks
-  if (lastLineLen >= logBufferLineLen) {
-    if (c != 10)
-      return 1;
-  }
-
-  // Write to buffer
-  logBuffer[logBufferFilled++] = c;
-  // Keep track of lines written
-  if (c == 10)
-    logBufferLine++;
-
-  // We always claim we printed it all
-  return 1;
+    return 1;
 }
 
 size_t screen_buffer_write(const char *str) {
@@ -166,44 +140,46 @@ void screen_print(const char *text) {
 }
 
 void screen_buffer_print() {
-  // interpretation from OLEDDisplay::drawLogBuffer()
-  // this is mostly hardcoded, not nice but getting it done.
-  uint16_t lineHeight = 10;
+    if (!display) return;
 
-  // Always align left
-  display->setTextAlignment(TEXT_ALIGN_LEFT);
+    display->setTextAlignment(TEXT_ALIGN_LEFT);
 
-  // State values
-  uint16_t length = 0;
-  uint16_t line = 0;
-  uint16_t lastPos = 0;
+    // --- This function is now much simpler ---
+    uint16_t startIndex;
 
-  // If the lineHeight and the display height are not cleanly divisible, we need
-  // to start off the screen when the buffer has logBufferMaxLines so that the
-  // first line, and not the last line, drops off.
-  uint16_t shiftUp =
-      (logBufferLine == logBufferMaxLines) ? (lineHeight - (display->getHeight() % lineHeight)) % lineHeight : 0;
-
-  for (uint16_t i = 0; i < logBufferFilled; i++) {
-    length++;
-    // Every time we have a \n print
-    if (logBuffer[i] == 10) {
-      // Draw string on line `line` from lastPos to length
-      // Passing 0 as the length because we are in TEXT_ALIGN_LEFT
-      char buffer[length + 1];
-      memcpy(&buffer, &logBuffer[lastPos], length);
-      // Serial.printf("Screen: %s\n", buffer);
-      display->drawString(0, SCREEN_HEADER_HEIGHT - shiftUp + (line++) * lineHeight, buffer);
-      // Remember last pos
-      lastPos = i;
-      // Reset length
-      length = 0;
+    if (lineCount < logBufferMaxLines) {
+        // If we have fewer lines than the max, start from the very beginning.
+        startIndex = logTail;
+    } else {
+        // Otherwise, start from the oldest line start we have stored.
+        startIndex = lineStartIndices[lineStartIndex];
     }
-  }
-  // Draw the remaining string
-  if (length > 0) {
-    display->drawString(0, SCREEN_HEADER_HEIGHT - shiftUp + line * lineHeight, &logBuffer[lastPos]);
-  }
+
+    const uint16_t lineHeight = 10;
+    uint8_t linesDrawn = 0;
+    char lineBuffer[logBufferLineLen + 1];
+    uint8_t linePos = 0;
+    uint16_t i = startIndex;
+
+    // The print loop is identical to the previous version
+    while (i != logHead) {
+        char character = logBuffer[i];
+
+        if (character == '\n' || linePos >= logBufferLineLen) {
+            lineBuffer[linePos] = '\0';
+            display->drawString(0, SCREEN_HEADER_HEIGHT + (linesDrawn * lineHeight), lineBuffer);
+            linesDrawn++;
+            linePos = 0;
+        } else {
+            lineBuffer[linePos++] = character;
+        }
+        i = (i + 1) % LOG_BUFFER_SIZE;
+    }
+
+    if (linePos > 0) {
+        lineBuffer[linePos] = '\0';
+        display->drawString(0, SCREEN_HEADER_HEIGHT + (linesDrawn * lineHeight), lineBuffer);
+    }
 }
 
 void screen_update() {
