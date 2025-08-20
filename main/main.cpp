@@ -572,14 +572,10 @@ void lorawan_save_prefs(void) {
     p.putUChar("ack", lorawanAck);
     // ##### save the join counters (nonces) to permanent store
     Serial.println(F("Saving nonces to flash"));
-    uint8_t buffer[RADIOLIB_LORAWAN_NONCES_BUF_SIZE];
-    uint8_t *persist = node.getBufferNonces();
-    memcpy(buffer, persist, RADIOLIB_LORAWAN_NONCES_BUF_SIZE);
-    p.putBytes("nonces", buffer, RADIOLIB_LORAWAN_NONCES_BUF_SIZE);
-    uint8_t buffer2[RADIOLIB_LORAWAN_SESSION_BUF_SIZE];
-    uint8_t *persist2 = node.getBufferSession();
-    memcpy(buffer2, persist2, RADIOLIB_LORAWAN_SESSION_BUF_SIZE);
-    p.putBytes("session", buffer2, RADIOLIB_LORAWAN_SESSION_BUF_SIZE);
+    uint8_t* noncesPtr = node.getBufferNonces();
+    p.putBytes("nonces", noncesPtr, RADIOLIB_LORAWAN_NONCES_BUF_SIZE);
+    uint8_t* sessionPtr  = node.getBufferSession();
+    p.putBytes("session", sessionPtr, RADIOLIB_LORAWAN_SESSION_BUF_SIZE);
     p.end();
   }
 }
@@ -1116,6 +1112,7 @@ void low_power_sleep(uint32_t seconds) {
 /** Power OFF -- does not return */
 void clean_shutdown(void) {
   /** cleanly shutdown the radio */
+  Serial.println("Shutdown.");
   // LMIC_shutdown();
   mapper_save_prefs();
   lorawan_save_prefs();
