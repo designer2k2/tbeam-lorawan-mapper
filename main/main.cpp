@@ -337,7 +337,7 @@ void lora_msg_callback(const _ev_t message) {
     seen_joining = true;
   if (!isJoined && seen_joined && seen_joining) {
     isJoined = true;
-    screen_print("Joined Helium!\n");
+    screen_print("Joined Network!\n");
     // ttn_set_sf(lorawan_sf);  // Joining seems to leave it at SF10?
     // ttn_get_sf_name(sf_name, sizeof(sf_name));
   }
@@ -497,7 +497,7 @@ void mapper_restore_prefs(void) {
 void mapper_save_prefs(void) {
   Preferences p;
 
-  Serial.println("Saving prefs.");
+  Serial.println("Saving mapper prefs.");
   if (p.begin("mapper", false)) {
     p.putFloat("min_dist", min_dist_moved);
     p.putUInt("tx_interval", stationary_tx_interval_s);
@@ -565,7 +565,7 @@ void lorawan_restore_prefs(void) {
 
 void lorawan_save_prefs(void) {
   Preferences p;
-  Serial.println("Saving prefs.");
+  Serial.println("Saving lorawan prefs.");
   if (p.begin("lora", false)) {
     p.putString("server", lorawanServer);
     p.putUChar("sf", lorawan_sf);
@@ -608,7 +608,7 @@ void deadzone_restore_prefs(void) {
 
 void deadzone_save_prefs(void) {
   Preferences p;
-  Serial.println("Saving prefs.");
+  Serial.println("Saving deadzone prefs.");
   if (p.begin("deadzone", false)) {
     p.putDouble("lat", deadzone_lat);
     p.putDouble("lon", deadzone_lon);
@@ -641,7 +641,7 @@ void screen_restore_prefs(void) {
 
 void screen_save_prefs(void) {
   Preferences p;
-  Serial.println("Saving prefs.");
+  Serial.println("Saving screen prefs.");
   if (p.begin("screen", false)) {
     p.putDouble("off_time", screen_idle_off_s);
     p.putDouble("menu_timeout", screen_menu_timeout_s);
