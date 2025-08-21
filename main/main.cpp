@@ -370,7 +370,6 @@ void lora_msg_callback(const _ev_t message) {
 
   if (EV_JOIN_FAILED == message) {
     digitalWrite(RED_LED, HIGH);
-    screen_print("Join Failed!\n");
   }
 
 }
@@ -1018,7 +1017,29 @@ void setup() {
       Serial.print(F("Activation failed, code "));
       lora_msg_callback(EV_JOIN_FAILED);
       Serial.println(state);
-      //while (true);
+
+      // Check for the specific -1116 error (No JoinAccept received)
+      if (state == RADIOLIB_ERR_NO_JOIN_ACCEPT) { // This constant equals -1116
+          // Show a more descriptive error for this specific case
+          screen_print("No JoinAccept\nCheck Keys/Range\n\nPress middle button\nto retry.", 0, 20);
+      } else {
+          // Show the generic failure message for all other errors
+          screen_print("Join failed!\nPress middle button\nto retry.", 0, 20);
+      }
+      screen_update();
+
+      // Loop forever until the middle button is pressed to retry
+      while (true) {
+          if (!digitalRead(MIDDLE_BUTTON_PIN)) {
+              Serial.println("Middle button pressed. Retrying activation by restarting...");
+              screen_clear();
+              screen_update();
+              ESP.restart();
+          }
+          delay(50);
+      }
+
+        //while (true);
     }
   }
 

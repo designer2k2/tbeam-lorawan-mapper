@@ -90,7 +90,7 @@ size_t screen_buffer_write(uint8_t c) {
     // Ignore carriage returns
     if (c == '\r') return 1;
 
-    // --- Part 1: Manage the main logBuffer (same as before) ---
+    // --- Part 1: Manage the main logBuffer ---
     logBuffer[logHead] = c;
     logHead = (logHead + 1) % LOG_BUFFER_SIZE;
 
@@ -144,7 +144,6 @@ void screen_buffer_print() {
 
     display->setTextAlignment(TEXT_ALIGN_LEFT);
 
-    // --- This function is now much simpler ---
     uint16_t startIndex;
 
     if (lineCount < logBufferMaxLines) {
@@ -161,7 +160,6 @@ void screen_buffer_print() {
     uint8_t linePos = 0;
     uint16_t i = startIndex;
 
-    // The print loop is identical to the previous version
     while (i != logHead) {
         char character = logBuffer[i];
 

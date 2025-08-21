@@ -24,6 +24,8 @@ void screen_header(
     boolean never_rest
 );
 
+void screen_clear(void);
+
 void screen_off(void);
 void screen_on(void);
 
