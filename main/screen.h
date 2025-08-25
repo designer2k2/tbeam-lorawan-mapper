@@ -19,6 +19,7 @@ void screen_header(
     unsigned int tx_interval_s,
     float min_dist_moved,
     char *cached_sf_name,
+    uint8_t tx_power,
     boolean in_deadzone,
     boolean stay_on,
     boolean never_rest

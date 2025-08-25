@@ -299,7 +299,7 @@ void screen_end() {
 #include <XPowersLib.h>
 extern XPowersLibInterface *PMU;
 
-void screen_header(unsigned int tx_interval_s, float min_dist_moved, char *cached_sf_name, boolean in_deadzone,
+void screen_header(unsigned int tx_interval_s, float min_dist_moved, char *cached_sf_name, uint8_t tx_power, boolean in_deadzone,
                    boolean stay_on, boolean never_rest) {
   if (!display)
     return;
@@ -350,8 +350,10 @@ void screen_header(unsigned int tx_interval_s, float min_dist_moved, char *cache
   display->setTextAlignment(TEXT_ALIGN_LEFT);
   display->drawString(0, 12, buffer);
 
+  // Format the SF and Tx Power together (e.g., "SF7/16dB")
+  snprintf(buffer, sizeof(buffer), "%s/%ddB", cached_sf_name, tx_power);
   display->setTextAlignment(TEXT_ALIGN_RIGHT);
-  display->drawString(display->getWidth(), 12, cached_sf_name);
+  display->drawString(display->getWidth(), 12, buffer);
 
   display->drawHorizontalLine(0, SCREEN_HEADER_HEIGHT, display->getWidth());
 }

@@ -59,6 +59,9 @@
 #define STATUS_USB_ON 2
 #define STATUS_USB_OFF 3
 
+#define MAX_TX_POWER 20
+#define MIN_TX_POWER 2
+
 bool justSendNow = false;               // Send one at boot, regardless of deadzone?
 unsigned long int last_send_ms = 0;     // Time of last uplink
 unsigned long int last_moved_ms = 0;    // Time of last movement
@@ -136,10 +139,37 @@ esp_sleep_source_t wakeCause;  // the reason we booted this time
 
 char buffer[40];  // Screen buffer
 
+
 String lorawanServer;
 uint8_t lorawanAck = false;
 uint8_t lorawan_sf;  // prefs LORAWAN_SF
+uint8_t lorawan_tx_power;
 char sf_name[40];
+
+// --- Region-Specific Spreading Factor Definitions, SF11, SF12 are left out due to long airtime for moving devices ---
+#if LORAWAN_REGION == EU868
+  // EU868 Data Rates: DR5=SF7, DR4=SF8, DR3=SF9, DR2=SF10
+  const uint8_t sf_list[] = {5, 4, 3, 2};
+  const char* sf_names[] = {"SF7", "SF8", "SF9", "SF10"};
+
+#elif LORAWAN_REGION == US915 || LORAWAN_REGION == AU915
+  // US915/AU915 Data Rates: DR3=SF7, DR2=SF8, DR1=SF9, DR0=SF10
+  const uint8_t sf_list[] = {3, 2, 1, 0};
+  const char* sf_names[] = {"SF7", "SF8", "SF9", "SF10"};
+
+#elif LORAWAN_REGION == AS923
+  // AS923 Data Rates: DR5=SF7, DR4=SF8, DR3=SF9, DR2=SF10
+  const uint8_t sf_list[] = {5, 4, 3, 2};
+  const char* sf_names[] = {"SF7", "SF8", "SF9", "SF10"};
+
+#else
+  // Default to EU868 as a fallback
+  const uint8_t sf_list[] = {5, 4, 3, 2};
+  const char* sf_names[] = {"SF7", "SF8", "SF9", "SF10"};
+
+#endif
+#define SF_ENTRIES (sizeof(sf_list) / sizeof(sf_list[0]))
+uint8_t sf_index = 0; // Default to SF7
 
 unsigned long int ack_req = 0;
 unsigned long int ack_rx = 0;
@@ -295,6 +325,9 @@ boolean send_uplink(uint8_t *txBuffer, uint8_t length, uint8_t fport, boolean co
     Serial.println(downlinkDetails.fCnt);
     Serial.print(F("[LoRaWAN] Port:\t\t"));
     Serial.println(downlinkDetails.fPort);
+    Serial.print(F("[LoRaWAN] Time-on-air: \t"));
+    Serial.print(node.getLastToA());
+    Serial.println(F(" ms"));
 
     uint8_t margin = 0;
     uint8_t gwCnt = 0;
@@ -541,6 +574,7 @@ void lorawan_restore_prefs(void) {
     lorawanAck = p.getUChar("ack", LORAWAN_CONFIRMED_EVERY);
     lorawan_sf = p.getUChar("sf", LORAWAN_SF);
     lorawanServer = p.getString("server", "helium");
+    lorawan_tx_power = p.getUChar("tx_power", 16);
     // a buffer that holds all LW base parameters that should persist at all times!
     uint8_t BbufferNonces[RADIOLIB_LORAWAN_NONCES_BUF_SIZE];
     p.getBytes("nonces", BbufferNonces, RADIOLIB_LORAWAN_NONCES_BUF_SIZE);
@@ -581,6 +615,7 @@ void lorawan_save_prefs(void) {
     p.putString("server", lorawanServer);
     p.putUChar("sf", lorawan_sf);
     p.putUChar("ack", lorawanAck);
+    p.putUChar("tx_power", lorawan_tx_power);
     // ##### save the join counters (nonces) to permanent store
     Serial.println(F("Saving nonces to flash"));
     uint8_t* noncesPtr = node.getBufferNonces();
@@ -1058,10 +1093,28 @@ void setup() {
   Serial.println((unsigned long)node.getDevAddr(), HEX);
   lora_msg_callback(EV_JOINED);
 
-  // DataRate 5 = SF7BW125KHZ
-  node.setDatarate(5);
-  // TX Power to 16dBm (max for EU868)
-  node.setTxPower(16);
+  // Initialize SF based on preferences
+  Serial.printf("Setting initial SF from preferences: DR%d\n", lorawan_sf);
+  node.setDatarate(lorawan_sf);
+
+  // Find the correct index and name for the loaded SF to display on screen
+  bool sf_found = false;
+  for (int i = 0; i < SF_ENTRIES; i++) {
+    if (sf_list[i] == lorawan_sf) {
+        sf_index = i;
+        strncpy(sf_name, sf_names[i], sizeof(sf_name));
+        sf_found = true;
+        break;
+    }
+  }
+  // Fallback to default if saved SF is not in our list
+  if (!sf_found) {
+    sf_index = 0; // Default to SF7
+    strncpy(sf_name, sf_names[sf_index], sizeof(sf_name));
+  }
+
+  // Set TX Power from preferences
+  node.setTxPower(lorawan_tx_power);
 
   // on EEPROM enabled boards, you can save the current session
   // by calling "saveSession" which allows retrieving the session after reboot or deepsleep
@@ -1379,22 +1432,39 @@ void menu_gps_reset(void) {
   gps_full_reset();
 }
 
-/*dr_t sf_list[] = {DR_SF7, DR_SF8, DR_SF9, DR_SF10};
-#define SF_ENTRIES (sizeof(sf_list) / sizeof(sf_list[0]))
-uint8_t sf_index = 0;
 
 void menu_change_sf(void)
 {
-    sf_index++;
-    if (sf_index >= SF_ENTRIES)
-        sf_index = 0;
+    sf_index = (sf_index + 1) % SF_ENTRIES; // Cycle through the list
+    lorawan_sf = sf_list[sf_index]; // Get the data rate number
 
-    //lorawan_sf = sf_list[sf_index];
-    //ttn_set_sf(lorawan_sf);
-    //ttn_get_sf_name(sf_name, sizeof(sf_name));
-    Serial.printf("New SF: %s\n", sf_name);
+    // Apply the new data rate to the LoRaWAN node
+    node.setDatarate(lorawan_sf);
+
+    // Update the name for display purposes
+    strncpy(sf_name, sf_names[sf_index], sizeof(sf_name));
+
+    Serial.printf("New SF set to: %s (DR%d)\n", sf_name, lorawan_sf);
+    screen_print("\nSF set to ");
+    screen_print(sf_name);
 }
-*/
+
+void menu_power_plus(void) {
+    if (lorawan_tx_power < MAX_TX_POWER) {
+        lorawan_tx_power++;
+        node.setTxPower(lorawan_tx_power);
+        Serial.printf("Tx Power set to %d dBm\n", lorawan_tx_power);
+    }
+}
+
+void menu_power_minus(void) {
+    if (lorawan_tx_power > MIN_TX_POWER) {
+        lorawan_tx_power--;
+        node.setTxPower(lorawan_tx_power);
+        Serial.printf("Tx Power set to %d dBm\n", lorawan_tx_power);
+    }
+}
+
 struct menu_entry menu[] = {
     {"Send Now", menu_send_now},
     {"Power Off", menu_power_off},
@@ -1402,7 +1472,9 @@ struct menu_entry menu[] = {
     {"Distance -", menu_distance_minus},
     {"Time +", menu_time_plus},
     {"Time -", menu_time_minus},
-    //    {    "Change SF",       menu_change_sf},
+    {"Power +", menu_power_plus},
+    {"Power -", menu_power_minus},
+    {"Change SF", menu_change_sf},
     {"Full Reset", menu_flush_prefs},
     {"USB GPS", menu_gps_passthrough},
     {"Deadzone Here", menu_deadzone_here},
@@ -1440,7 +1512,7 @@ void menu_selected(void) {
 }
 
 void update_screen(void) {
-  screen_header(tx_interval_s, min_dist_moved, sf_name, in_deadzone, screen_stay_on, never_rest);
+  screen_header(tx_interval_s, min_dist_moved, sf_name, lorawan_tx_power, in_deadzone, screen_stay_on, never_rest);
   screen_body(in_menu, menu_prev, menu_cur, menu_next, is_highlighted);
 }
 
