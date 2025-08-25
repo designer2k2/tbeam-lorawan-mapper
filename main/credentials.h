@@ -23,9 +23,9 @@ APPKEY (msb): CF4B3E8F8FCB779C8E1CAEE311712AE5
 This format is suitable for copying from Terminal/Monitor and pasting directly into the console as-is.
 
 If you want to take the random Console values for a new device, and use them here, be sure to select:
-   Device EUI: lsb
-   App EUI:    lsb
+   Device EUI: msb
    App Key:    msb
+   NwK Key:    msb
 in the Console, then click the arrows to expand the values with comma separators, then paste them below.
 */
 // joinEUI - previous versions of LoRaWAN called this AppEUI
