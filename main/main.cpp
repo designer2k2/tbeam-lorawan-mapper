@@ -682,9 +682,9 @@ void scanI2CDevice(void) {
         oled_found = true;
         Serial.printf("OLED at 0x%02X\r\n", oled_addr);
       }
-      if (addr == AXP192_SLAVE_ADDRESS) {
+      if (addr == AXP2101_SLAVE_ADDRESS) {
         pmu_found = true;
-        Serial.printf("AXP192 PMU at 0x%02X\r\n", addr);
+        Serial.printf("AXP192/AXP2101 PMU at 0x%02X\r\n", addr);
       }
     } else if (err == 4) {
       Serial.printf("Unknown i2c device at 0x%02X\r\n", addr);
@@ -726,9 +726,9 @@ int axp_charge_to_ma(int set) {
  * LDO2 200mA -> "LORA_VCC"
  * LDO3 200mA -> "GPS_VCC"
  */
-void axp192Init() {
+void axpInit() {
   if (!pmu_found) {
-    Serial.println("AXP192 not found!");
+    Serial.println("AXP192/AXP2101 PMU not found!");
     return;
   }
 
@@ -889,6 +889,16 @@ void axp192Init() {
   }
   Serial.printf("=========================================\n");
 
+  // It is necessary to disable the detection function of the TS pin on the board
+  // without the battery temperature detection function, otherwise it will cause abnormal charging
+  PMU->disableTSPinMeasure();
+
+    // Enable internal ADC detection
+  PMU->enableBattDetection();
+  PMU->enableVbusVoltageMeasure();
+  PMU->enableBattVoltageMeasure();
+  PMU->enableSystemVoltageMeasure();
+
   // Call the interrupt request through the interface class
   PMU->disableInterrupt(XPOWERS_ALL_INT);
 
@@ -938,7 +948,7 @@ void setup() {
 
   scanI2CDevice();
 
-  axp192Init();
+  axpInit();
 
   // GPS sometimes gets wedged with no satellites in view and only a power-cycle
   // saves it. Here we turn off power and the delay in screen setup is enough
@@ -1467,13 +1477,27 @@ void loop() {
     // uint32_t status = PMU->getIrqStatus();
     PMU->getIrqStatus();
 
-    irq_name = find_irq_name();
-
-    if (PMU->isPekeyShortPressIrq()) {
+    // Check for USB power events first
+    if (PMU->isVbusInsertIrq()) {
+        have_usb_power = true;
+        Serial.println("USB power connected.");
+        screen_print("\nUSB ON");
+    } else if (PMU->isVbusRemoveIrq()) {
+        have_usb_power = false;
+        Serial.println("USB power disconnected.");
+        screen_print("\nUSB OFF");
+    } else if (PMU->isBatChargeStartIrq()) {
+        Serial.println("Battery charge start.");
+        screen_print("\nCharge ON");
+    } else if (PMU->isBatChargeDoneIrq()) {
+        Serial.println("Battery charge done.");
+        screen_print("\nCharge DONE");
+    } else if (PMU->isPekeyShortPressIrq()) {
       menu_press();
     } else if (PMU->isPekeyLongPressIrq()) {  // want to turn OFF
       menu_power_off();
     } else {
+      irq_name = find_irq_name();
       snprintf(buffer, sizeof(buffer), "\n* %s  ", irq_name);
       screen_print(buffer);
     }
