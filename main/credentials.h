@@ -23,9 +23,9 @@ APPKEY (msb): CF4B3E8F8FCB779C8E1CAEE311712AE5
 This format is suitable for copying from Terminal/Monitor and pasting directly into the console as-is.
 
 If you want to take the random Console values for a new device, and use them here, be sure to select:
-   Device EUI: lsb
-   App EUI:    lsb
+   Device EUI: msb
    App Key:    msb
+   NwK Key:    msb
 in the Console, then click the arrows to expand the values with comma separators, then paste them below.
 */
 // joinEUI - previous versions of LoRaWAN called this AppEUI
@@ -59,13 +59,26 @@ uint8_t appKey[] = {RADIOLIB_LORAWAN_APP_KEY};
 uint8_t nwkKey[] = {RADIOLIB_LORAWAN_NWK_KEY};
 
 
-// SX1262 on Tbeam1.2
-#define SX1262_CS 18
-#define SX1262_DIO1 33  // SX1262 IRQ
-#define SX1262_BUSY 32  // SX1262 BUSY
-#define SX1262_RESET 23
+// do not modify below easily, switch between radios in the platformio.ini file build_flags section.
 
-SX1262 radio = new Module(SX1262_CS, SX1262_DIO1, SX1262_RESET, SX1262_BUSY);
+#ifdef ARDUINO_TBEAM_USE_RADIO_SX1262
+  // SX1262 on Tbeam1.2
+  #define SX1262_CS 18
+  #define SX1262_DIO1 33  // SX1262 IRQ
+  #define SX1262_BUSY 32  // SX1262 BUSY
+  #define SX1262_RESET 23
+
+  SX1262 radio = new Module(SX1262_CS, SX1262_DIO1, SX1262_RESET, SX1262_BUSY);
+#endif
+
+#ifdef ARDUINO_TBEAM_USE_RADIO_SX1276
+  // SX1276 on Tbeam1.2
+  #define SX1276_CS 18
+  #define SX1276_DIO1 26  // SX1262 IRQ
+  #define SX1262_RESET 23
+
+  SX1276 radio = new Module(SX1276_CS, SX1276_DIO1, SX1262_RESET);
+#endif
 
 // create the LoRaWAN node
 LoRaWANNode node(&radio, &Region, subBand);

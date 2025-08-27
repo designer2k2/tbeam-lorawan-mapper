@@ -2,15 +2,15 @@
 # LILYGO T-Beam Mapper for the Helium or TTN LoRaWAN Network.
 
 
-This code loads onto LilyGo TTGO T-Beam v1.2 board with AXP2101 and SX1262 to make a LoraWan (Helium/TTN) Network Mapper. To build one: download this build, configure some files, and upload it to your device.  Go travel the world to contribute to the TTN/Helium Network Coverage Maps!
+This code loads onto LilyGo TTGO T-Beam v1.2 board with AXP2101 and SX1262 or SX1276 to make a LoraWan (Helium/TTN) Network Mapper. To build one: download this build, configure some files, and upload it to your device.  Go travel the world to contribute to the TTN/Helium Network Coverage Maps!
 
-![loramapper](https://github.com/designer2k2/tbeam-lorawan-mapper/assets/1591573/136b92f9-3024-491f-9fa6-8ad90f7bd9ea)
+![loramapper](https://github.com/user-attachments/assets/c1dc3cff-78c9-4e21-b7e8-ffe4b9771270)
 
 ## Purpose
 
-The goal of this software is to have a **TTGO T-Beam** Mapper that's ideally suited to walking or driving, taking cues from the USB Power source and movement for activity level.
+The goal of this software is to have a **TTGO T-Beam** Mapper that's ideally suited to walking or driving.
 
-This device uploads GPS coordinates from the TTGO T-Beam to the Helium network, be used for tracking and determining signal coverage of LoRaWAN gateways and hotspots.
+This device uploads GPS coordinates from the TTGO T-Beam to the TTN/Helium network, be used for tracking and determining signal coverage of LoRaWAN gateways and hotspots.
 With this software and a T-Beam device, one can contribute either to [The Things Network](https://www.thethingsnetwork.org/) or to the [Helium Network](https://www.helium.com) Mapper or Cargo projects.
 Details for the Mapper project can be found [TTN Mapper](https://ttnmapper.org/) or [Helium Mapper](https://mappers.helium.com/) and details for Cargo can be found [here](https://cargo.helium.com/).  It also works with [Coverage Map](https://helium.coveragemap.net/heatmap/), a new Heatmap view of Helium hotspots and coverage.
 
@@ -30,7 +30,7 @@ I tested this software on (many) LilyGo [TTGO T-Beam v1.2](https://www.lilygo.cc
 
 ### Semtech LoRa Radio
 
-This build uses the [RadioLib Library](https://github.com/jgromes/RadioLib/) for LoRaWAN on the Semtech SX1262 radio modules.
+This build uses the [RadioLib Library](https://github.com/jgromes/RadioLib/) for LoRaWAN on the Semtech SX1262 or SX1276 radio modules.
 
 ### OLED Display
 
@@ -141,7 +141,7 @@ Powered off, the circuit still draws **3.22 μA (micro-amps)**. Not significant,
 ## Operation: How it Works
 
 When your car is started, and USB Power appears, the Mapper will power on, acquire GPS, and continue mapping.
-It re-uses the last network Join state for faster connection and fewer packets.
+It reuses the last network Join state for faster connection and fewer packets.
 
 The Mapper is always looking to see if it's been a long time, or you moved some distance from the last report.  Whichever one happens first causes a transmission to be sent, plotting a point on the Helium map.  **Time or Distance** are the two main factors in determining when to send Uplinks.
 
@@ -237,9 +237,9 @@ The Mapper will flash the Blue LED at 4Hz and attempt to Join the Helium network
 6. RF or hardware issues.  Disconnected antenna, mismatched antenna frequency, etc.
 
 ### Re-Join
-Once the Mapper joins the Helium network, it stores these Network Key credentials for future use.  Ideally, the Mapper does not have to send a Join request at the next startup, but fetches them from the non-volatile "Preferences" memory.  To successfully continue with these same credentials, the Mapper needs to continue the Frame Count from prior transmissions, or the Helium network will reject Uplink packets as "Late" (for re-using old Frame Count values).
+Once the Mapper joins the Helium network, it stores these Network Key credentials for future use.  Ideally, the Mapper does not have to send a Join request at the next startup, but fetches them from the non-volatile "Preferences" memory.  To successfully continue with these same credentials, the Mapper needs to continue the Frame Count from prior transmissions, or the Helium network will reject Uplink packets as "Late" (for reusing old Frame Count values).
 
-When you see `(re-used join)` on the screen and serial log, this means no Join Request/Accept packets were sent, and the unit will attempt to use the same credentials.
+When you see `(reused join)` on the screen and serial log, this means no Join Request/Accept packets were sent, and the unit will attempt to use the same credentials.
 
 There are some instances where this is problematic or not correct:
 * Frame count lost without saving
@@ -341,7 +341,7 @@ This [Decoder Function](https://github.com/designer2k2/tbeam-lorawan-mapper/blob
 
 ### Grafana integration for custom maps
 
-If you want to maintain your own device map, there is an excellent [Grafana guide](https://friendsoflittleyus.nl/grafana-helium-gps-tracker-on-raspberry-pi/) here and additional information and [template scripts](https://github.com/takeabyte/helium_mapper_grafana) by @takeabyte (`@friends just call me bob`) available.
+If you want to maintain your own device map, there is an excellent [Grafana guide](https://github.com/takeabyte/helium_mapper_grafana) by @takeabyte (`@friends just call me bob`) available.
 
 ## Downlink
 This builds adds the option to reconfigure the Mapper remotely via Helium Downlink (network to device).  You can change the maximum Time Interval, Distance, and Battery Cut-off voltage remotely.
