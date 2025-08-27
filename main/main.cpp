@@ -1057,7 +1057,7 @@ void setup() {
     node.setADR(false);
 
     if (state == RADIOLIB_LORAWAN_NEW_SESSION) {
-      Serial.println(F("success!"));
+      Serial.println(F("success in OTAA activation!"));
     } else {
       Serial.print(F("Activation failed, code "));
       lora_msg_callback(EV_JOIN_FAILED);
@@ -1091,7 +1091,11 @@ void setup() {
   // Print the DevAddr
   Serial.print("[LoRaWAN] DevAddr: ");
   Serial.println((unsigned long)node.getDevAddr(), HEX);
+  char devAddrBuffer[30];
   lora_msg_callback(EV_JOINED);
+  snprintf(devAddrBuffer, sizeof(devAddrBuffer), "DevAddr: %08lX\n", (unsigned long)node.getDevAddr());
+  screen_print(devAddrBuffer);
+  screen_update();
 
   // Initialize SF based on preferences
   Serial.printf("Setting initial SF from preferences: DR%d\n", lorawan_sf);
