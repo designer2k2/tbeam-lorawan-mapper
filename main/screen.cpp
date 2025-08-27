@@ -88,7 +88,7 @@ void screen_print(const char *text, uint8_t x, uint8_t y) {
 
 size_t screen_buffer_write(uint8_t c) {
     // Ignore carriage returns
-    if (c == '\r') return 1;
+    if (c < 32 && c != '\n') return 1; // Ignore non-printable characters except newline
 
     // --- Part 1: Manage the main logBuffer ---
     logBuffer[logHead] = c;
@@ -150,8 +150,8 @@ void screen_buffer_print() {
         // If we have fewer lines than the max, start from the very beginning.
         startIndex = logTail;
     } else {
-        // Otherwise, start from the oldest line start we have stored.
-        startIndex = lineStartIndices[lineStartIndex];
+        // Start from the oldest line in lineStartIndices
+    startIndex = lineStartIndices[(lineStartIndex - lineCount + logBufferMaxLines) % logBufferMaxLines];
     }
 
     const uint16_t lineHeight = 10;
@@ -164,10 +164,12 @@ void screen_buffer_print() {
         char character = logBuffer[i];
 
         if (character == '\n' || linePos >= logBufferLineLen) {
-            lineBuffer[linePos] = '\0';
-            display->drawString(0, SCREEN_HEADER_HEIGHT + (linesDrawn * lineHeight), lineBuffer);
-            linesDrawn++;
-            linePos = 0;
+          lineBuffer[linePos] = '\0';
+          if (linesDrawn < logBufferMaxLines) {
+              display->drawString(0, SCREEN_HEADER_HEIGHT + (linesDrawn * lineHeight), lineBuffer);
+              linesDrawn++;
+          }
+          linePos = 0;
         } else {
             lineBuffer[linePos++] = character;
         }
@@ -283,9 +285,6 @@ void screen_setup(uint8_t addr) {
   display->init();
   display->flipScreenVertically();
   display->setFont(Custom_Font);
-
-  // Scroll buffer
-  display->setLogBuffer(4, 30);
 }
 
 void screen_end() {

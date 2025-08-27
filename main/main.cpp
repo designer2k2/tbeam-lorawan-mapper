@@ -689,8 +689,8 @@ void screen_save_prefs(void) {
   Preferences p;
   Serial.println("Saving screen prefs.");
   if (p.begin("screen", false)) {
-    p.putDouble("off_time", screen_idle_off_s);
-    p.putDouble("menu_timeout", screen_menu_timeout_s);
+    p.putInt("off_time", screen_idle_off_s);
+    p.putInt("menu_timeout", screen_menu_timeout_s);
     p.end();
   }
 }
@@ -1301,7 +1301,7 @@ void update_activity() {
     active_state = ACTIVITY_MOVING;
   } else if (now - last_moved_ms > sleep_wait_s * 1000) {
     active_state = ACTIVITY_SLEEP;
-  } else if (now - last_fix_time > gps_lost_wait_s * 1000) {
+  } else if (last_fix_time == 0 || now - last_fix_time > gps_lost_wait_s * 1000) {
     active_state = ACTIVITY_GPS_LOST;
   } else if (now - last_moved_ms > rest_wait_s * 1000) {
     active_state = ACTIVITY_REST;
