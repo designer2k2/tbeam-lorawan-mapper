@@ -139,8 +139,6 @@ esp_sleep_source_t wakeCause;  // the reason we booted this time
 
 char buffer[40];  // Screen buffer
 
-
-String lorawanServer;
 uint8_t lorawanAck = false;
 uint8_t lorawan_sf;  // prefs LORAWAN_SF
 uint8_t lorawan_tx_power;
@@ -573,7 +571,6 @@ void lorawan_restore_prefs(void) {
   if (p.begin("lora", true)) {  // Read-only
     lorawanAck = p.getUChar("ack", LORAWAN_CONFIRMED_EVERY);
     lorawan_sf = p.getUChar("sf", LORAWAN_SF);
-    lorawanServer = p.getString("server", "helium");
     lorawan_tx_power = p.getUChar("tx_power", 16);
     // a buffer that holds all LW base parameters that should persist at all times!
     uint8_t BbufferNonces[RADIOLIB_LORAWAN_NONCES_BUF_SIZE];
@@ -612,7 +609,6 @@ void lorawan_save_prefs(void) {
   Preferences p;
   Serial.println("Saving lorawan prefs.");
   if (p.begin("lora", false)) {
-    p.putString("server", lorawanServer);
     p.putUChar("sf", lorawan_sf);
     p.putUChar("ack", lorawanAck);
     p.putUChar("tx_power", lorawan_tx_power);
