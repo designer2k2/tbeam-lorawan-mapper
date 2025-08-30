@@ -1,6 +1,5 @@
 <!-- ## TTGO T-Beam Tracker for The Things Network and/or The Helium Network  -->
-# LILYGO T-Beam Mapper for the Helium or TTN LoRaWAN Network.
-
+# LILYGO T-Beam Mapper for the Helium or TTN LoRaWAN Network
 
 This code loads onto LilyGo TTGO T-Beam v1.2 board with AXP2101 and SX1262 or SX1276 to make a LoraWan (Helium/TTN) Network Mapper. To build one: download this build, configure some files, and upload it to your device.  Go travel the world to contribute to the TTN/Helium Network Coverage Maps!
 
@@ -16,21 +15,57 @@ Details for the Mapper project can be found [TTN Mapper](https://ttnmapper.org/)
 
 The Mapper is intended to be highly active while the vehicle is in motion, and quieter when the vehicle is stationary.    By default, it is not miserly with Data Credits.  If you want to conserve Data Credits or battery power, tune the configuration to send packets less frequently.
 
-### But do I get PAID for Mapping?
-
-No, you do not.  I put this here because it seems to be the #1 FAQ.  You do not earn HNT or Data Credits by mapping.  Mapping costs you very little -- One Penny (USD $0.01) for every thousand mapping packets.  It helps the Helium network by providing a coverage map, and it helps you by providing clarity on your own local Helium environment.  It's all volunteer.
-
-### But do I get to flag and delist spoofing gamer Hotspots?!
-
-No, you do not.  It's the #2 FAQ.  The Mapper data and coverage maps are not involved in any POC challenges or used for gaming denylists.
-
 ## Supported Hardware
 
-I tested this software on (many) LilyGo [TTGO T-Beam v1.2](https://www.lilygo.cc/products/t-beam-softrf?variant=43170155692213) devices, all on **EU868**.  Others have enjoyed success on **EU688** and other worldwide bands, with the matching device.  These are commonly available as "Meshtastic" devices from AliExpress, Amazon, Banggood, eBay, etc, usually as a kit with an unsoldered OLED screen and SMA antenna for around USD $30.00.
+I tested this software on LilyGo [TTGO T-Beam v1.2](https://www.lilygo.cc/products/t-beam-softrf?variant=43170155692213) devices, all on **EU868**.  Others have enjoyed success on other worldwide bands, with the matching device.  These are commonly available as "Meshtastic" devices from AliExpress, Amazon, Banggood, eBay, etc, usually as a kit with an unsoldered OLED screen and SMA antenna for around USD $30.00.
+
+## Quick Setup
+
+Settings for the console and in `credentials.h`
+
+### The Things Network TTN
+
+Console:
+
+- Frequency plan: Europe 863-870 MHz (SF9 for RX2 - recommended)
+- LoRaWAN version: LoRaWAN Specification 1.1.0
+- Regional Parameters version: RP001 Regional Parameters 1.1 revision A
+- Payload formatters: Uplink: JavaScript functions and paste: /console-decoders/unified_decoder.js
+- End devices: General settings: Join settings: Resets join nonces: Enabled
+
+credentials.h:
+
+- uncomment #define USE_NWK_KEY
+- RADIOLIB_LORAWAN_JOIN_EUI: all 0
+- RADIOLIB_LORAWAN_DEV_EUI: copy msb from console
+- RADIOLIB_LORAWAN_JOIN_EUI: copy msb from console
+- RADIOLIB_LORAWAN_APP_KEY: copy msb from console
+- RADIOLIB_LORAWAN_NWK_KEY: copy msb from console
+
+### Helium
+
+Console:
+
+- Region: EU868
+- MAC version: LoRaWAN 1.0.4
+- Regional Parameters revision: A
+- ADR algorithm: Default ADR algorithm (LoRa only)
+- Join OTAA/ABP: Device supports OTAA
+- Codec: JavaScript functions and paste: /console-decoders/unified_decoder.js
+- Device Configuration: Disable frame-counter validation
+
+credentials.h:
+
+- comment #define USE_NWK_KEY
+- RADIOLIB_LORAWAN_JOIN_EUI: copy msb from console
+- RADIOLIB_LORAWAN_DEV_EUI: copy msb from console
+- RADIOLIB_LORAWAN_JOIN_EUI: copy msb from console
+- RADIOLIB_LORAWAN_APP_KEY: copy msb from console
+- RADIOLIB_LORAWAN_NWK_KEY: will not be used
 
 ### Semtech LoRa Radio
 
-This build uses the [RadioLib Library](https://github.com/jgromes/RadioLib/) for LoRaWAN on the Semtech SX1262 or SX1276 radio modules.
+This Fork uses the [RadioLib Library](https://github.com/jgromes/RadioLib/) for LoRaWAN on the Semtech SX1262 or SX1276 radio modules.
 
 ### OLED Display
 
@@ -47,12 +82,15 @@ If you incorrectly power the OLED, short connections, or damage the Pin 21/22 co
 ## Mandatory Configuration
 
 Before Building and Uploading, you will probably want to inspect or change some items in these three files:
-  - `platformio.ini`
-  - `main/configuration.h`
-  - `main/credentials.h`
+
+- `main/configuration.h`
+- `main/credentials.h`
+- `platformio.ini`
+
 The comments and text below will guide you on what values to look out for.
 
 ### Geographic Region, and Frequency
+
 By default, this build is for the **EU868** region.  Change the declaration in `credentials.h` for a different locale, to select the correct operating rules and frequency for your country.
 
 ### PlatformIO Communication port
@@ -63,11 +101,11 @@ On MacOS, it can be significantly more complicated to connect PlatformIO to your
 
 ### Device IDs
 
-Each LoRaWAN device is identified by the three OTAA values used in Joining the network: `DevEUI`, `AppEUI`, and `AppKey`.
+Each LoRaWAN device is identified by the three OTAA values used in Joining the network: `DevEUI`, `NwkKey`, and `AppKey`.
 
-You should choose your own private `AppKey` value in `credentials.cpp`. Either take the random value generated by the new Console Device entry, or make up one of your own.  Read the notes in `credentials.cpp` for details.  The value in the build must match the value in Console, regardless of how you achieve that.
+You should choose your own private `AppKey` value in `credentials.h`. Either take the random value generated by the new Console Device entry, or make up one of your own.  Read the notes in `credentials.h` for details.  The value in the build must match the value in Console, regardless of how you achieve that.
 
-By default, the `DevEUI` is generated automatically to be unique to each unit, but you may want to hardcode it in `credentials.cpp` instead.  There is an explanation there of why you might want to go either way.
+By default, the `DevEUI` is generated automatically to be unique to each unit, but you may want to hardcode it in `credentials.h` instead.  There is an explanation there of why you might want to go either way.
 
 ### Mapper uplink period and behavior
 
@@ -164,6 +202,7 @@ Regardless of battery or sleep state, the Mapper will power on and resume when U
 ### Buttons
 
 The TTGO T-Beam has three buttons on the underside:
+
 1. Power: Nearest the USB connector is the Power button.
 - Menu: **short press** while on will enter the Menu display.  Use the Power button to step through options, and the **Middle** button to select a menu entry.
 - Off: **long press** on this button will turn the unit completely off (5 seconds).
@@ -181,6 +220,7 @@ The device outputs debugging information on the USB Serial connection at 115200b
 #### ESP32 Bootloader
 
 On powerup or reset, the very first messages will be from the Bootloader built into the ESP system.  This is before any Mapper software runs and should look something like this:
+
 ```
 ets Jul 29 2019 12:21:46
 
@@ -218,7 +258,9 @@ On startup, the USB Serial port will print the DevEUI, AppID, and AppKey values,
 For some, this is the easiest way to configure a new device.  Upload the software, monitor the first boot, then cut & paste the values from the messages into the Console "New Device" setup.
 
 ##### Saved Preferences
+
 The Mapper will retain certain settings across power cycles.
+
 * Minimum distance
 * Stationary Tx Interval (min time)
 * Rest Wait (time until slower reporting)
@@ -299,9 +341,11 @@ The T-Beam usually comes as a kit with a 0.96" SSD1306 OLED screen that you must
 The OLED screen is always on when operating, as it uses only 10mA.
 
 #### Status Bar
+
 Operating Status is shown in the top two rows, with a running 4-line message log in the region below the line.
 
 The top status line alternates between two displays every few seconds:
+
 - `#ABC` is the last three hex digits of your DevEUI, so you can match it to the correct device in Console.  Handy if you have several Mappers that look the same.
 - `4.10v` is the battery voltage
 - `80%` is the charge level of the the battery.
@@ -337,16 +381,17 @@ The Payload Port and byte content have been selected to match the format used by
 A custom Decoder Function translates the payload bytes into a set of JSON values required by the Integrations for both Mapper and Cargo.
 This turns the Base64 Payload into values for Lat, Long, Altitude, Speed, Battery, and Sats.
 
-This [Decoder Function](https://github.com/designer2k2/tbeam-lorawan-mapper/blob/RadioLib_SX1262/console-decoders/unified_decoder.js)) can be pasted directly into the Console custom function.  Do not use Decoder functions from other builds or instructions!  The Uplink decoding is specific to the software that made the packet, so it has to match.  (Note that HDOP is not sent in this data.)
+This [Decoder Function](https://github.com/designer2k2/tbeam-lorawan-mapper/blob/main/console-decoders/unified_decoder.js) can be pasted directly into the Console custom function.  Do not use Decoder functions from other builds or instructions!  The Uplink decoding is specific to the software that made the packet, so it has to match.  (Note that HDOP is not sent in this data.)
 
 ### Grafana integration for custom maps
 
 If you want to maintain your own device map, there is an excellent [Grafana guide](https://github.com/takeabyte/helium_mapper_grafana) by @takeabyte (`@friends just call me bob`) available.
 
 ## Downlink
+
 This builds adds the option to reconfigure the Mapper remotely via Helium Downlink (network to device).  You can change the maximum Time Interval, Distance, and Battery Cut-off voltage remotely.
 
-### Format your Downlink Payload.
+### Format your Downlink Payload
 
 You can use the `console-decoders/downlink_encoder.py` Python script to convert your intent into a Base64 Payload.
 ```
@@ -395,12 +440,11 @@ This build is a modification of work by many experts, with input from the [Heliu
 
 The Fork history here in Github shows the lineage and prior work, including  https://github.com/helium/longfi-arduino/tree/master/TTGO-TBeam-Tracker
 
-This code was originally developed for use on The Things Network (TTN) it has been edited/repurposed for use with the Helium Network.
+This code was originally developed for use on The Things Network (TTN) it has been edited/repurposed for use with the Helium Network. And then back to be universal for both.
 
-This version is based on a forked repo from github user [kizniche] https://github.com/kizniche/ttgo-tbeam-ttn-tracker. Which in turn is based on the code from [xoseperez/ttgo-beam-tracker](https://github.com/xoseperez/ttgo-beam-tracker), with excerpts from [dermatthias/Lora-TTNMapper-T-Beam](https://github.com/dermatthias/Lora-TTNMapper-T-Beam) to fix an issue with incorrect GPS data being transmitted to the network. Support was also added for the 915 MHz frequency (North and South America).
+This version is based on a forked repo from github user [Max-Plastix](https://github.com/Max-Plastix/tbeam-helium-mapper). Which is based on [kizniche](https://github.com/kizniche/ttgo-tbeam-ttn-tracker). Which in turn is based on the code from [xoseperez/ttgo-beam-tracker](https://github.com/xoseperez/ttgo-beam-tracker), with excerpts from [dermatthias/Lora-TTNMapper-T-Beam](https://github.com/dermatthias/Lora-TTNMapper-T-Beam) to fix an issue with incorrect GPS data being transmitted to the network. Support was also added for the 915 MHz frequency (North and South America).
 
-This is a LoRaWAN node based on the [TTGO T-Beam](https://github.com/LilyGO/TTGO-T-Beam) development platform using the SSD1306 I2C OLED display.
-It uses a RFM95 by HopeRF and the MCCI LoRaWAN LMIC stack. This sample code is configured to connect to The LoRaWan network using the US 915 MHz frequency by default, but can be changed to EU 868 MHz.
+This is a LoRaWAN node based on the [TTGO T-Beam](https://github.com/LilyGO/TTGO-T-Beam) development platform using the SSD1306 I2C OLED display. This sample code is configured to connect to The LoRaWan network using the US 915 MHz frequency by default, but can be changed to EU 868 MHz.
 
 NOTE: There are now 2 versions of the TTGO T-BEAM, the first version (Rev0) and a newer version (Rev1). The GPS module on Rev1 is connected to different pins than Rev0. This code has been successfully tested on REV0, and is in the process of being tested on REV1. See the end of this README for photos of each board.
 

@@ -6,21 +6,8 @@
 #include <RadioLib.h>
 
 /*
-This is where you define the three key values that map your Device to the Helium Console.
+This is where you define the three key values that map your Device to the LoRaWAN Console.
 All three values must match between the code and the Console.
-
-There are two general ways to go about this:
-1) Let the Console pick random values for one or all of them, and copy them here in the code.
--or-
-2) Define them here in the code, and then copy them to the Console to match these values.
-
-When the Mapper boots, it will show all three values in the Monitor console, like this:
-
-DevEUI (msb): AABBCCDDEEFEFF
-APPEUI (msb): 6081F9BF908E2EA0
-APPKEY (msb): CF4B3E8F8FCB779C8E1CAEE311712AE5
-
-This format is suitable for copying from Terminal/Monitor and pasting directly into the console as-is.
 
 If you want to take the random Console values for a new device, and use them here, be sure to select:
    Device EUI: msb
@@ -28,17 +15,25 @@ If you want to take the random Console values for a new device, and use them her
    NwK Key:    msb
 in the Console, then click the arrows to expand the values with comma separators, then paste them below.
 */
+
+/*
+NwkKey option for LoRaWAN 1.1.x
+- For LoRaWAN 1.0.x, comment out the #define line.
+- For LoRaWAN 1.1.x, uncomment it and provide your NwkKey.
+*/
+//#define USE_NWK_KEY
+
 // joinEUI - previous versions of LoRaWAN called this AppEUI
 // for development purposes you can use all zeros - see wiki for details
-#define RADIOLIB_LORAWAN_JOIN_EUI 0x0000000000000000
+#define RADIOLIB_LORAWAN_JOIN_EUI 0xa09284515663b1a5
 
 // the Device EUI & two keys can be generated on the TTN console
 #ifndef RADIOLIB_LORAWAN_DEV_EUI  // Replace with your Device EUI
-#define RADIOLIB_LORAWAN_DEV_EUI 0x70B3D57ED0066B6E
+#define RADIOLIB_LORAWAN_DEV_EUI 0x044e31696f7f04de
 #endif
 #ifndef RADIOLIB_LORAWAN_APP_KEY  // Replace with your App Key
 #define RADIOLIB_LORAWAN_APP_KEY \
-  0x74, 0x5D, 0x28, 0x7B, 0xEF, 0xFB, 0x51, 0xFF, 0x4A, 0x89, 0xDC, 0xF7, 0x95, 0x3B, 0x16, 0x4D
+  0x4B, 0x8F, 0xA9, 0x31, 0xAB, 0x2C, 0x68, 0x5B, 0x14, 0x3C, 0x49, 0xB0, 0x7B, 0xFD, 0x35, 0xE3
 #endif
 #ifndef RADIOLIB_LORAWAN_NWK_KEY  // Put your Nwk Key here
 #define RADIOLIB_LORAWAN_NWK_KEY \
@@ -56,8 +51,13 @@ const uint8_t subBand = 0;  // For US915, change this to 2, otherwise leave on 0
 uint64_t joinEUI = RADIOLIB_LORAWAN_JOIN_EUI;
 uint64_t devEUI = RADIOLIB_LORAWAN_DEV_EUI;
 uint8_t appKey[] = {RADIOLIB_LORAWAN_APP_KEY};
-uint8_t nwkKey[] = {RADIOLIB_LORAWAN_NWK_KEY};
 
+// Conditionally define nwkKey. If the macro doesn't exist, it becomes a null pointer.
+#ifdef USE_NWK_KEY
+  uint8_t nwkKey[] = {RADIOLIB_LORAWAN_NWK_KEY};
+#else
+  uint8_t* nwkKey = NULL;
+#endif
 
 // do not modify below easily, switch between radios in the platformio.ini file build_flags section.
 

@@ -33,3 +33,6 @@ void screen_on(void);
 void screen_show_logo(void);
 void screen_setup(uint8_t addr);
 void screen_end(void);
+
+void screen_serial_dump();
+void screen_serial_dump_compressed();

@@ -2,8 +2,10 @@
  *
  * SSD1306 - Screen module
  *
+ * Copyright (C) 2025 designer2k2 Stephan M.
  * Copyright (C) 2018 by Xose Pérez <xose dot perez at gmail dot com>
  *
+ * Based on the work from Xose Pérez
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,6 +34,26 @@
 #include "font.h"
 #include "gps.h"
 #include "images.h"
+
+// --- Screenshot Helper Classes ---
+// These simple subclasses expose the protected 'buffer' from the base library
+// so we can access it for screen capture functionality without modifying the library.
+
+class ScreenCaptureSSD1306 : public SSD1306Wire {
+public:
+  ScreenCaptureSSD1306(uint8_t addr, uint8_t sda, uint8_t scl) : SSD1306Wire(addr, sda, scl) {}
+  uint8_t* getBuffer() {
+    return this->buffer;
+  }
+};
+
+class ScreenCaptureSH1106 : public SH1106Wire {
+public:
+  ScreenCaptureSH1106(uint8_t addr, uint8_t sda, uint8_t scl) : SH1106Wire(addr, sda, scl) {}
+  uint8_t* getBuffer() {
+    return this->buffer;
+  }
+};
 
 #define SCREEN_HEADER_HEIGHT 23
 const uint16_t logBufferLineLen = 30;
@@ -185,6 +207,7 @@ void screen_buffer_print() {
 void screen_update() {
   if (display)
     display->display();
+  // screen_serial_dump_compressed(); // Send screenshot over serial
 }
 
 /**
@@ -275,13 +298,14 @@ void screen_setup(uint8_t addr) {
   if (display_type == E_DISPLAY_UNKNOWN)
     display_type = display_get_type(addr);
 
-  // Display instance
+  // Display instance - CHANGED TO USE OUR WRAPPER CLASSES
   if (display_type == E_DISPLAY_SSD1306)
-    display = new SSD1306Wire(addr, I2C_SDA, I2C_SCL);
+    display = new ScreenCaptureSSD1306(addr, I2C_SDA, I2C_SCL); // Use our class
   else if (display_type == E_DISPLAY_SH1106)
-    display = new SH1106Wire(addr, I2C_SDA, I2C_SCL);
+    display = new ScreenCaptureSH1106(addr, I2C_SDA, I2C_SCL); // Use our class
   else
     return;
+
   display->init();
   display->flipScreenVertically();
   display->setFont(Custom_Font);
@@ -382,4 +406,107 @@ void screen_body(boolean in_menu, const char *menu_prev, const char *menu_cur, c
     screen_buffer_print();
   }
   display->display();
+  // screen_serial_dump_compressed(); // Send screenshot over serial
+}
+
+/**
+ * @brief Gets the state of a single pixel directly from the display's memory buffer.
+ * This version uses a subclassing trick to access the protected buffer.
+ * @param x The x-coordinate of the pixel.
+ * @param y The y-coordinate of the pixel.
+ * @return 1 if the pixel is on (white), 0 if it is off (black).
+ */
+int getPixelFromBuffer(int16_t x, int16_t y) {
+  if (!display) return 0;
+  
+  uint8_t* buffer = nullptr;
+
+  // Cast the display pointer to our specific subclass to access getBuffer()
+  if (display_type == E_DISPLAY_SSD1306) {
+    buffer = static_cast<ScreenCaptureSSD1306*>(display)->getBuffer();
+  } else if (display_type == E_DISPLAY_SH1106) {
+    buffer = static_cast<ScreenCaptureSH1106*>(display)->getBuffer();
+  }
+
+  if (!buffer) return 0; // Safety check
+
+  // Check if coordinates are out of bounds
+  if (x < 0 || x >= display->getWidth() || y < 0 || y >= display->getHeight()) {
+    return 0;
+  }
+
+  // The rest of the logic is the same as before
+  int byte_index = x + (y / 8) * display->getWidth();
+  int bit_index = y % 8;
+
+  if ((buffer[byte_index] >> bit_index) & 1) {
+    return 1;
+  }
+  
+  return 0;
+}
+
+/**
+ * @brief Dumps the current screen buffer to the Serial port as ASCII art.
+ * Useful for debugging without having physical access to the screen.
+ */
+void screen_serial_dump() {
+  if (!display) {
+    return;
+  }
+
+  Serial.println(F("\n--- SCREEN DUMP BEGIN ---"));
+  for (int16_t y = 0; y < display->getHeight(); y++) {
+    for (int16_t x = 0; x < display->getWidth(); x++) {
+      // Use the new helper function to read from the buffer
+      Serial.print(getPixelFromBuffer(x, y) ? "#" : ".");
+    }
+    Serial.println(); // Newline after each row
+  }
+  Serial.println(F("--- SCREEN DUMP END ---"));
+}
+
+
+/**
+ * @brief Dumps the current screen buffer to Serial using Run-Length Encoding (RLE).
+ * This is much faster than the uncompressed dump.
+ * Format: B<count> W<count> ... (e.g., B128 W15 B1000)
+ */
+void screen_serial_dump_compressed() {
+  if (!display) {
+    return;
+  }
+
+  Serial.println(F("\n--- RLE DUMP BEGIN ---"));
+
+  // Get the state of the very first pixel to start the first run
+  int currentRunState = getPixelFromBuffer(0, 0);
+  int runLength = 0;
+
+  for (int16_t y = 0; y < display->getHeight(); y++) {
+    for (int16_t x = 0; x < display->getWidth(); x++) {
+      // Use the new helper function here as well
+      int pixelState = getPixelFromBuffer(x, y);
+      if (pixelState == currentRunState) {
+        // If the pixel is the same, extend the current run
+        runLength++;
+      } else {
+        // The pixel changed, so the run has ended. Print it.
+        Serial.print(currentRunState ? 'W' : 'B');
+        Serial.print(runLength);
+        Serial.print(' ');
+        
+        // Start a new run
+        currentRunState = pixelState;
+        runLength = 1;
+      }
+    }
+  }
+
+  // After the loops, print the very last run
+  Serial.print(currentRunState ? 'W' : 'B');
+  Serial.print(runLength);
+  Serial.println(); // Final newline
+  
+  Serial.println(F("--- RLE DUMP END ---"));
 }
