@@ -1,14 +1,16 @@
 /**
  * LoRaWan Mapper build for LilyGo TTGO T-Beam v1.2 boards.
+ * 
+ * Copyright (C) 2025 designer2k2 Stephan M.
  * Copyright (C) 2021-2022 by Max-Plastix
  *
- * This is a development fork by Max-Plastix hosted here:
- * https://github.com/Max-Plastix/tbeam-helium-mapper/
+ * This is a fork by designer2k2 hosted here:
+ * https://github.com/designer2k2/tbeam-lorawan-mapper
  *
  * This code comes from a number of developers and earlier efforts, visible in
  * the full lineage on Github, including:
  *
- *     Fizzy, longfi-arduino, Kyle T. Gabriel, and Xose Pérez
+ *     Max-Plastix, Fizzy, longfi-arduino, Kyle T. Gabriel, and Xose Pérez
  *
  * GPL makes this all possible -- continue to modify, extend, and share!
  */

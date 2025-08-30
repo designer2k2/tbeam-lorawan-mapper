@@ -2,8 +2,10 @@
  *
  * SSD1306 - Screen module
  *
+ * Copyright (C) 2025 designer2k2 Stephan M.
  * Copyright (C) 2018 by Xose Pérez <xose dot perez at gmail dot com>
  *
+ * Based on the work from Xose Pérez
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
