@@ -381,7 +381,7 @@ The Payload Port and byte content have been selected to match the format used by
 A custom Decoder Function translates the payload bytes into a set of JSON values required by the Integrations for both Mapper and Cargo.
 This turns the Base64 Payload into values for Lat, Long, Altitude, Speed, Battery, and Sats.
 
-This [Decoder Function](https://github.com/designer2k2/tbeam-lorawan-mapper/blob/RadioLib_SX1262/console-decoders/unified_decoder.js) can be pasted directly into the Console custom function.  Do not use Decoder functions from other builds or instructions!  The Uplink decoding is specific to the software that made the packet, so it has to match.  (Note that HDOP is not sent in this data.)
+This [Decoder Function](https://github.com/designer2k2/tbeam-lorawan-mapper/blob/main/console-decoders/unified_decoder.js) can be pasted directly into the Console custom function.  Do not use Decoder functions from other builds or instructions!  The Uplink decoding is specific to the software that made the packet, so it has to match.  (Note that HDOP is not sent in this data.)
 
 ### Grafana integration for custom maps
 
