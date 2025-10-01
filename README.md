@@ -454,13 +454,11 @@ NOTE: There are now 2 versions of the TTGO T-BEAM, the first version (Rev0) and 
 
 2. Add the PlattformIO extension within VS Code (https://platformio.org/install/ide?install=vscode)
 
-3. Check Device Manager if a serial device appear on connecting the T-Beam. If nothing appears a driver for the USB to serial Adapter need to be installed.(https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers)
+3. Check Device Manager if a serial device appear on connecting the T-Beam. If nothing appears a driver for the USB to serial Adapter need to be installed.([Silabs USB UART Drivers](https://www.silabs.com/software-and-tools/usb-to-uart-bridge-vcp-drivers))
 
 3. Check and edit platformio.ini to use the right bandplan for your region.
 
 4. Within the Helium Console, add a Mapper or Cargo integration.
-- step by step details for setting up a Mapper integration can be found [here](https://docs.helium.com/iot/coverage-mapping/quickstart).
-- detail for setting up a Cargo integration can be found [here](https://docs.helium.com/use-the-network/console/integrations/cargo).
 
 The specific details for adding a Mapper or Cargo integration use a different edge node device than the one detailed here. When prompted to add a function decoder, be sure to use the Decoder Function above.
 
@@ -470,6 +468,6 @@ Filenames with `.ino` are a holdover from Arduino IDE.  **Do not use Arduino IDE
 
 ### Using the Mapping Data
 
-Now that your device is hopefully connecting to the Helium network refer to the following for more details about interpreting the mapping data.
-- For the Helium Mapping effort visit [here](https://docs.helium.com/use-the-network/coverage-mapping)
-- For the Helium Cargo effort visit [here](https://docs.helium.com/use-the-network/console/integrations/cargo). Pay particular attention to the "Info" note found on this page.
+Now that your device is hopefully connecting to the Lora network refer to the following for more details about interpreting the mapping data.
+- For the Helium Mapping effort visit [Mappers Helium](https://mappers.helium.com/)
+- For the The Things Network visit [TTN Mapper](https://ttnmapper.org/)
