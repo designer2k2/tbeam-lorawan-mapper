@@ -1031,9 +1031,14 @@ void setup() {
   state = radio.begin();
   debug(state != RADIOLIB_ERR_NONE, F("Initialise radio failed"), state, true);
 
+  creds_load(creds);
+  creds_print(creds, false);
+  Serial.println(F("[Creds] Type 'help' on this serial port to change credentials."));
+  uint8_t *nwkKey = creds.useNwkKey ? creds.nwkKey : NULL;
+
   Serial.print(F("[LoRaWAN] Resuming previous session ... "));
 
-  node.beginOTAA(joinEUI, devEUI, nwkKey, appKey);
+  node.beginOTAA(creds.joinEUI, creds.devEUI, nwkKey, creds.appKey);
 
   lorawan_restore_prefs();
   lora_msg_callback(EV_JOINING);
@@ -1049,7 +1054,7 @@ void setup() {
     // node.wipe();
 
     Serial.print(F("[LoRaWAN] Attempting over-the-air activation ... "));
-    node.beginOTAA(joinEUI, devEUI, nwkKey, appKey);
+    node.beginOTAA(creds.joinEUI, creds.devEUI, nwkKey, creds.appKey);
     state = node.activateOTAA();
 
     node.setADR(false);
@@ -1071,8 +1076,9 @@ void setup() {
       }
       screen_update();
 
-      // Loop forever until the middle button is pressed to retry
+      // Loop forever until the middle button is pressed to retry; keys can be fixed over serial meanwhile
       while (true) {
+          serial_config_poll(creds);
           if (!digitalRead(MIDDLE_BUTTON_PIN)) {
               Serial.println("Middle button pressed. Retrying activation by restarting...");
               screen_clear();
@@ -1531,7 +1537,7 @@ void loop() {
     last_fix_time = now;  // Note the time of most recent fix
   }
 
-  // ttn_loop();
+  serial_config_poll(creds);
 
   // menu timeout
   if (in_menu && now - menu_idle_start > (screen_menu_timeout_s) * 1000)

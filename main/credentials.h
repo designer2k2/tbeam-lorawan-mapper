@@ -5,6 +5,8 @@
 
 #include <RadioLib.h>
 
+#include "serial_config.h"
+
 /*
 This is where you define the three key values that map your Device to the LoRaWAN Console.
 All three values must match between the code and the Console.
@@ -47,17 +49,20 @@ NwkKey option for LoRaWAN 1.1.x
 const LoRaWANBand_t Region = EU868;
 const uint8_t subBand = 0;  // For US915, change this to 2, otherwise leave on 0
 
-// copy over the EUI's & keys in to the something that will not compile if incorrectly formatted
-uint64_t joinEUI = RADIOLIB_LORAWAN_JOIN_EUI;
-uint64_t devEUI = RADIOLIB_LORAWAN_DEV_EUI;
-uint8_t appKey[] = {RADIOLIB_LORAWAN_APP_KEY};
-
-// Conditionally define nwkKey. If the macro doesn't exist, it becomes a null pointer.
+// These are build defaults. Values set over USB serial (type 'help') are stored in NVS and take precedence.
 #ifdef USE_NWK_KEY
-  uint8_t nwkKey[] = {RADIOLIB_LORAWAN_NWK_KEY};
+  #define CREDS_USE_NWK_KEY true
 #else
-  uint8_t* nwkKey = NULL;
+  #define CREDS_USE_NWK_KEY false
 #endif
+
+LoraCreds creds = {
+    RADIOLIB_LORAWAN_JOIN_EUI,
+    RADIOLIB_LORAWAN_DEV_EUI,
+    {RADIOLIB_LORAWAN_APP_KEY},
+    {RADIOLIB_LORAWAN_NWK_KEY},
+    CREDS_USE_NWK_KEY,
+};
 
 // do not modify below easily, switch between radios in the platformio.ini file build_flags section.
 
