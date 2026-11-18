@@ -107,6 +107,19 @@ You should choose your own private `AppKey` value in `credentials.h`. Either tak
 
 By default, the `DevEUI` is generated automatically to be unique to each unit, but you may want to hardcode it in `credentials.h` instead.  There is an explanation there of why you might want to go either way.
 
+#### Setting credentials over USB serial
+
+Instead of recompiling for each device, you can flash one firmware and set the keys over the USB serial port (115200 baud, newline line ending). The values are stored in NVS (flash) and take precedence over `credentials.h`. All values are msb, and the TTN Console `{ 0x.., 0x.. }` format can be pasted directly.
+
+```
+set deveui 044E31696F7F04DE
+set joineui A09284515663B1A5
+set appkey 4B8FA931AB2C685B143C49B07BFD35E3
+save
+```
+
+`save` stores the staged values, forgets the old LoRaWAN session and reboots to join again. Other commands: `show`, `set nwkkey <hex>` / `clear nwkkey` (LoRaWAN 1.1), `discard`, `clear keys` (back to the `credentials.h` defaults) and `reboot`. Type `help` for the list. The commands also work while the screen shows "Join failed", so a fresh device can be set up there. The "Full Reset" menu entry keeps stored keys.
+
 ### Mapper uplink period and behavior
 
 Read through the comments in `configuration.h` to see if the default Mapper behavior suits your needs, especially in the area of default time/distance between Uplink packets.
